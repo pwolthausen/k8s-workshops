@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+
+    spec:
+      containers:
+      - name: 
+        image: 
+        ports:
+        - containerPort:
+        readinessProbe:
+          exec:
+            # Check if we can execute basic query.
+            command: ["mysql", "-h", "127.0.0.1", "-e", "SELECT 1"]
+          intialDelaySeconds: 30
+        env:
+        - name: MYSQL_ALLOW_EMPTY_PASSWORD
+          value: "1"
