@@ -175,7 +175,7 @@ The Anti-affinity blok will look very similar to the previous affinity block, th
                 operator: In
                 value:
                 - webserver
-              topologyKey: kubernetes.io/hostname
+            topologyKey: kubernetes.io/hostname
 </pre>
 
 Notice this time we used `podAntiAffinity` instead of `podAffinity`.
@@ -189,6 +189,6 @@ You should see each of your pods on a different node. If you have less than 5 no
 If you have more than 5 or more nodes, all your pods should be scheduled on a different node. This is similar to a daemonset only it does not force a 1:1 ration between nodes and pods, you'll get as many pods as you asked for.
 
 Let's change the topologyKey now to zonal and see what happens.
-> kubectl patch deploy webserver -p '{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity":{requiredDuringSchedulingIgnoredDuringExecution":{"topologyKey": "failure-domain.beta.kubernetes.io/zone"}}}}}}}`
-If your cluster is in a single zone, you should only see a single pod due to the topologyKey. If the cluster spans multiple zones, you should have as many pods as there are zones.
-
+> kubectl patch deploy webserver -p '{"spec":{"template":{"spec":{"affinity":{"podAntiAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":{"topologyKey": "failure-domain.beta.kubernetes.io/zone"}}}}}}}`
+To make sure we observe the behavior we want to see, let's clear out the old pods to watch the effect
+> kubectl delete po -n scheduling -l app=webserver

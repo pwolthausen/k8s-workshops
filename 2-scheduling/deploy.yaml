@@ -1,3 +1,4 @@
+
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -74,6 +75,10 @@ spec:
         image: pstauffer/curl
         command: ["/bin/sh"]
         args: ["-c","while true; do curl webserver.scheduling.svc.cluster.local; sleep 1; done"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50mb
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -92,4 +97,4 @@ spec:
     spec:
       containers:
       - name: super-special-workload
-        image: 
+        image: nginx:latest
