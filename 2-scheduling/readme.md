@@ -10,7 +10,7 @@
 Before you get started with this workshop, you will need to have a Cluster with some default nodes, ideally without any taints.
 You will need to create the cluster resources we will be working with by applying `deploy.yaml`, make sure to run:
 
-> kubectl apply -f deploy.yaml
+`kubectl apply -f deploy.yaml`
 
 This will create a number of pods, services and other resources required to get started.
 
@@ -35,7 +35,7 @@ Taints and tolerations always work together. Taints apply to nodes and toleratio
 To get a better understanding of how this works, we'll start by creating new nodes (now node pool in GKE) and taint the nodes. (If you are using GKE, you can taint the entire node pool during node pool creation)
 You can apply a taint to a node manually using this command:
 
-> kubectl taint nodes [node_name] key=value:effect
+`kubectl taint nodes [node_name] key=value:effect`
 
 The defined key and value can be anything you want to use, just make sure to keep note of it. The effect will normally be `NoSchedule`, make sure to review the `PreferredNoSchedule` and the `Execute` effects as well.
 
@@ -86,6 +86,8 @@ Similar to Node affinity. This will decide which node to schedule the pod to by 
 
 #### 3. Pod Anti-affinity
 This also evaluates nodes based on the pod labels of pods already present on the node. Unlike the previous two affinities, nodes that meet the requirements will be less likely to be used or completely ignored, based on the affinity values. This is useful to ensure that certain pods are not scheduled together such as ensuring an even workload spread or ensuring that two resource intensive pods do not share a common node.
+
+
 
 Whether it is Pod or Node affinity, the affinity configuration will be almost identical. The differences in the affinity types have more to do with the level of the resources you want to evaluate (node labels Vs pod labels)
 
@@ -150,11 +152,11 @@ Depending on the size of your nodes and your cluster, this update may not have a
 Let's try to highlight the impact by tweaking our deployments.
 
 1. Scale down the webserver deployment
-> kubectl scale deploy webserver --replicas 1 -n scheduling
+`kubectl scale deploy webserver --replicas 1 -n scheduling`
 2. Note, affinity only applies during scheduling, so let's force the pods to reschedule
-> kubectl delete po --all -n scheduling
+`kubectl delete po --all -n scheduling`
 3. Now, once the pods are scheduled, we should see the `pressure` pods grouping as much as possible with the `webserver` pods
-> kubectl get po -n scheduling -o wide
+`kubectl get po -n scheduling -o wide`
 
 #### Anti-Affinity
 
@@ -183,12 +185,12 @@ We also used `requiredDuringSchedulingIgnoredDuringExecution` which means the ru
 Edit the `webserver` deployment and add the above affinity block to it.
 Now let's scale up the deployment. 
 
-> kubectl scale deploy -n scheduling webserver --replicas 5
+`kubectl scale deploy -n scheduling webserver --replicas 5`
 
 You should see each of your pods on a different node. If you have less than 5 nodes, not all the pods will be scheduled which would trigger auto-scaling if you have it enabled.
 If you have more than 5 or more nodes, all your pods should be scheduled on a different node. This is similar to a daemonset only it does not force a 1:1 ration between nodes and pods, you'll get as many pods as you asked for.
 
 Let's change the topologyKey now to zonal and see what happens.
-> kubectl patch deploy webserver -p '{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity":{requiredDuringSchedulingIgnoredDuringExecution":{"topologyKey": "failure-domain.beta.kubernetes.io/zone"}}}}}}}`
-If your cluster is in a single zone, you should only see a single pod due to the topologyKey. If the cluster spans multiple zones, you should have as many pods as there are zones.
+`kubectl patch deploy webserver -p '{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity":{requiredDuringSchedulingIgnoredDuringExecution":{"topologyKey": "failure-domain.beta.kubernetes.io/zone"}}}}}}}'`
 
+If your cluster is in a single zone, you should only see a single pod due to the topologyKey. If the cluster spans multiple zones, you should have as many pods as there are zones.
