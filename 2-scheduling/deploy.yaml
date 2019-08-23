@@ -1,0 +1,131 @@
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scheduling
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver
+  namespace: scheduling
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webserver
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - name: web-server
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: main
+      volumes:
+      - configMap:
+          name: main-page
+          items:
+          - key: index.html
+            path: index.html
+        name: main
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: main-page
+  namespace: scheduling
+data:
+  index.html: |
+      <html>\n<title>Online Clock</title>\n<head>
+      <script type="text/javascript">
+      function startTime()
+      {
+      var today=new Date();
+      var h=today.getHours();
+      var m=today.getMinutes();
+      var s=today.getSeconds();
+      // add a zero in front of numbers<10\nm=checkTime(m);
+      s=checkTime(s);
+      document.getElementById('txt').innerHTML=h+":"+m+":"+s;
+      t=setTimeout('startTime()',500);}
+      function checkTime(i)
+      {
+      if (i<10)
+      {
+      i="0" + i;
+      }
+      return i;
+      }
+      </script>
+      </head>
+      <body onload="startTime()">
+      <font style="font-size:30px">
+      The time is
+      <div id="txt"></div>
+      </body>
+      <footer>
+      <font style="color:blue">
+      You should get a watch
+      </footer>
+      </html>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver
+  namespace: scheduling
+spec:
+  selector:
+    app: webserver
+  ports:
+  - port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pressure
+  namespace: scheduling
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: load-test
+  template:
+    metadata:
+      labels:
+        app: load-test
+    spec:
+      containers:
+      - name: load-test
+        image: pstauffer/curl
+        command: ["/bin/sh"]
+        args: ["-c","while true; do curl webserver.scheduling.svc.cluster.local; sleep 1; done"]
+        resources:
+          requests:
+            cpu: 25m
+            memory: 25Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: special
+  namespace: scheduling
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: special
+  template:
+    metadata:
+      labels:
+        app: special
+    spec:
+      containers:
+      - name: super-special-workload
+        image: nginx:latest

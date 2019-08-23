@@ -1,0 +1,6 @@
+<html>\n<title>Online Clock</title>\n<head>\n<script type="text/javascript">\nfunction startTime()\n
+{\nvar today=new Date();\nvar h=today.getHours();\nvar m=today.getMinutes();\nvar s=today.getSeconds();\n// add a z
+ero in front of numbers<10\nm=checkTime(m);\ns=checkTime(s);\ndocument.getElementById('txt').innerHTML=h+":"+m+":"+
+s;\nt=setTimeout('startTime()',500);\n}\nfunction checkTime(i)\n{\nif (i<10)\n{\ni="0" + i;\n}\nreturn i;\n}\n</scr
+ipt>\n</head>\n<body onload="startTime()">\n<font style="font-size:30px">\nThe time is\n<div id="txt"></div>\n</bod
+y>\n<footer>\n<font style="color:blue">\nYou should get a watch\n</footer>\n</html>
