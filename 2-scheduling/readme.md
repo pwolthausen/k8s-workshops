@@ -211,3 +211,8 @@ kubectl patch deploy webserver -n scheduling -p \
 </pre>
 
 If your cluster is in a single zone, you should only see a single pod due to the topologyKey. If the cluster spans multiple zones, you should have as many pods as there are zones.
+
+
+## Clean up
+
+`kubectl delete ns scheduling`
