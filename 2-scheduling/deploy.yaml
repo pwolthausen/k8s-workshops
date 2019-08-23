@@ -41,7 +41,39 @@ metadata:
   name: main-page
   namespace: scheduling
 data:
-  index.html: "<html>\n<title>Online Clock</title>\n<head>\n<script type="text/javascript">\nfunction startTime()\n{\nvar today=new Date();\nvar h=today.getHours();\nvar m=today.getMinutes();\nvar s=today.getSeconds();\n// add a zero in front of numbers<10\nm=checkTime(m);\ns=checkTime(s);\ndocument.getElementById('txt').innerHTML=h+":"+m+":"+s;\nt=setTimeout('startTime()',500);\n}\nfunction checkTime(i)\n{\nif (i<10)\n{\ni="0" + i;\n}\nreturn i;\n}\n</script>\n</head>\n<body onload="startTime()">\n<font style="font-size:30px">\nThe time is\n<div id="txt"></div>\n</body>\n<footer>\n<font style="color:blue">\nYou should get a watch\n</footer>\n</html>"
+  index.html: |
+      <html>\n<title>Online Clock</title>\n<head>
+      <script type="text/javascript">
+      function startTime()
+      {
+      var today=new Date();
+      var h=today.getHours();
+      var m=today.getMinutes();
+      var s=today.getSeconds();
+      // add a zero in front of numbers<10\nm=checkTime(m);
+      s=checkTime(s);
+      document.getElementById('txt').innerHTML=h+":"+m+":"+s;
+      t=setTimeout('startTime()',500);}
+      function checkTime(i)
+      {
+      if (i<10)
+      {
+      i="0" + i;
+      }
+      return i;
+      }
+      </script>
+      </head>
+      <body onload="startTime()">
+      <font style="font-size:30px">
+      The time is
+      <div id="txt"></div>
+      </body>
+      <footer>
+      <font style="color:blue">
+      You should get a watch
+      </footer>
+      </html>
 ---
 apiVersion: v1
 kind: Service
@@ -50,8 +82,7 @@ metadata:
   namespace: scheduling
 spec:
   selector:
-    matchLabels:
-      app: webserver
+    app: webserver
   ports:
   - port: 80
 ---
@@ -77,8 +108,8 @@ spec:
         args: ["-c","while true; do curl webserver.scheduling.svc.cluster.local; sleep 1; done"]
         resources:
           requests:
-            cpu: 50m
-            memory: 50mb
+            cpu: 25m
+            memory: 25Mi
 ---
 apiVersion: apps/v1
 kind: Deployment

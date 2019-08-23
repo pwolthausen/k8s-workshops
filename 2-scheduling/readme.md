@@ -16,15 +16,22 @@ This will create a number of pods, services and other resources required to get 
 
 ## Resource requests
 
-K8s leverages resource requests for many different aspects, including scheduling, auto-scaling and pod preemption. It is best practice to have these configured for all your pods([see best practices video](https://www.youtube.com/watch?v=xjpHggHKm78)). Deciding on which value to set for the request depends entirely on the container being deployed. See [this](https://opensource.com/article/18/12/optimizing-kubernetes-resource-allocation-production) blog about determineing resource requests and limits for your containers.
+K8s leverages resource requests for many different aspects, including scheduling, auto-scaling and pod preemption. It is best practice to have these configured for all your pods([see best practices video](https://www.youtube.com/watch?v=xjpHggHKm78)). 
+Deciding on which value to set for the request depends entirely on the container being deployed. See [this](https://opensource.com/article/18/12/optimizing-kubernetes-resource-allocation-production) blog about determining resource requests and limits for your containers.
+it is also worth noting that the resource requests are defined at the container level, not the pod level. If you have multiple containers in a pod, each can (and should) have their resources defined. The pod's total resource requests will be used for scheduling.
 
-1. Given the deployment `webserver`, determine appropriate resource requests
+1. Given the deployment `webserver`, determine appropriate resource requests.
+Once you've established what your requested resources should be, edit the deployment and add the `spec.template.spec.containers[].resources.requests` field. 
 
 As k8s cluster admin, it is good practice to [enforce resource requests per namespace](https://kubernetes.io/docs/concepts/policy/limit-range/) in case users forget to set them.
 
 2. Set resource request default values at the namespace level
+Apply a default resource request and limit value for the `scheduling` namespace
 
 3. Set resource request limitations per namespace
+Enforce memory and CPU constraints in the `scheduling` namespace to ensure that no pod requests more than 500mb and 250m.
+Now that there are constraints and default values set, clear all the pods from the namespace so that the rules get applied to your pods
+`kubectl delete po --all -n scheduling`
 
 Setting limits works in basically the same way as setting requests. Note that resource limits do not affect pod scheduling, it is used to ensure your containers do not consume too much CPU or memory and is good practice to use.
 
@@ -35,7 +42,7 @@ Taints and tolerations always work together. Taints apply to nodes and toleratio
 To get a better understanding of how this works, we'll start by creating new nodes (now node pool in GKE) and taint the nodes. (If you are using GKE, you can taint the entire node pool during node pool creation)
 You can apply a taint to a node manually using this command:
 
-`kubectl taint nodes [node_name] key=value:effect`
+`kubectl taint nodes [node_name] key=value:[effect]`
 
 The defined key and value can be anything you want to use, just make sure to keep note of it. The effect will normally be `NoSchedule`, make sure to review the `PreferredNoSchedule` and the `Execute` effects as well.
 
@@ -93,9 +100,8 @@ Whether it is Pod or Node affinity, the affinity configuration will be almost id
 
 The first value to define for affinity is whether the rules are a strict pass/fail or a suggestion, the two options are:
 
-`requiredDuringSchedulingIgnoredDuringExecution:` This value is a strict pass/fail evalaution. If no nodes meet the requirements defined in the affinity, the pods won't be scheduled at al.
-
-`preferredDuringSchedulingIgnoredDuringExecution:` This is more of a suggestion for the scheduler, a preference. When using this option, you will include a weight to your affinity definition. Each time a node evaluation meets the values you set, the defined weight is added to the node for the schedulers final calculations. Even though a node may meet all the desired requirements, this does not mean your pods will definitely be scheduled here, it just means it is more likely. The higher the weight value, the more likely.
+- `requiredDuringSchedulingIgnoredDuringExecution:` This value is a strict pass/fail evalaution. If no nodes meet the requirements defined in the affinity, the pods won't be scheduled at al.
+- `preferredDuringSchedulingIgnoredDuringExecution:` This is more of a suggestion for the scheduler, a preference. When using this option, you will include a weight to your affinity definition. Each time a node evaluation meets the values you set, the defined weight is added to the node for the schedulers final calculations. Even though a node may meet all the desired requirements, this does not mean your pods will definitely be scheduled here, it just means it is more likely. The higher the weight value, the more likely.
 
 If you choose the `preferredDuringSchedulingIgnoredDuringExecution`, your next step is to define a weight to the config. The weight must be an integer. The higher the value, the more importance the evaluation will be.
 
@@ -104,8 +110,8 @@ You will define matching expressions or labelSelector to define the labels you w
 
 Pod Affinity and anti-affinity have two additional fields that node affinity does not:
 
-`namespace` will define which namespace to use when verifying pod labels.
-`topologyKey` is a bit more complicated but also defines the scope of the search. You can set the topology to the node level so each node is evaluated on it's own, it can be set to the zone level so all the nodes in a single zone are evalauted together, or at the regional level.
+- `namespace` will define which namespace to use when verifying pod labels.
+- `topologyKey` is a bit more complicated but also defines the scope of the search. You can set the topology to the node level so each node is evaluated on it's own, it can be set to the zone level so all the nodes in a single zone are evalauted together, or at the regional level.
 
 #### Note
 If your topologyKey scope is larger than your clusters, it will have the effect of being cluster wide. IE if you have a zonal cluster (all nodes reside in a single zone) and you use the zonal scope for the topologyKey value, all the nodes in your cluster will be evaluated together. This may likely lead to unintended results.
@@ -191,6 +197,11 @@ You should see each of your pods on a different node. If you have less than 5 no
 If you have more than 5 or more nodes, all your pods should be scheduled on a different node. This is similar to a daemonset only it does not force a 1:1 ration between nodes and pods, you'll get as many pods as you asked for.
 
 Let's change the topologyKey now to zonal and see what happens.
-`kubectl patch deploy webserver -p '{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity":{requiredDuringSchedulingIgnoredDuringExecution":{"topologyKey": "failure-domain.beta.kubernetes.io/zone"}}}}}}}'`
+
+<pre>
+kubectl patch deploy webserver -n scheduling -p \
+'{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity":{"requiredDuringSchedulingIgnoredDuringExecution": \
+{"topologyKey": "failure-domain.beta.kubernetes.io/zone"}}}}}}}'
+<\pre>
 
 If your cluster is in a single zone, you should only see a single pod due to the topologyKey. If the cluster spans multiple zones, you should have as many pods as there are zones.
