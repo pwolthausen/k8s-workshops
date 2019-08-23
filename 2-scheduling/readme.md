@@ -31,6 +31,7 @@ Apply a default resource request and limit value for the `scheduling` namespace
 3. Set resource request limitations per namespace
 Enforce memory and CPU constraints in the `scheduling` namespace to ensure that no pod requests more than 500mb and 250m.
 Now that there are constraints and default values set, clear all the pods from the namespace so that the rules get applied to your pods
+
 `kubectl delete po --all -n scheduling`
 
 Setting limits works in basically the same way as setting requests. Note that resource limits do not affect pod scheduling, it is used to ensure your containers do not consume too much CPU or memory and is good practice to use.
@@ -39,15 +40,16 @@ Setting limits works in basically the same way as setting requests. Note that re
 ## Taints and Tolerations
 
 Taints and tolerations always work together. Taints apply to nodes and tolerations are configured in your pod spec.
-To get a better understanding of how this works, we'll start by creating new nodes (now node pool in GKE) and taint the nodes. (If you are using GKE, you can taint the entire node pool during node pool creation)
+To get a better understanding of how this works, we'll start by creating new nodes (new node pool in GKE) and taint the nodes. 
+NOTE If you are using GKE, you can taint the entire node pool during node pool creation
 You can apply a taint to a node manually using this command:
 
-`kubectl taint nodes [node_name] key=value:[effect]`
+`kubectl taint nodes [node_name] [key]=[value]:[effect]`
 
 The defined key and value can be anything you want to use, just make sure to keep note of it. The effect will normally be `NoSchedule`, make sure to review the `PreferredNoSchedule` and the `Execute` effects as well.
 
-You can view the taints on your nodes by describing the nodes themselves using `kubectl describe no`.
-If done correctly, you should notice no pods are being scheduled on your nodes with the exception of certain daemonset pods (DaemonSets include certain tolerations by default).
+You can view the taints on your nodes by describing the nodes themselves using `kubectl describe no [node name]`. \n
+If done correctly, you should notice no pods are being scheduled on your nodes with the exception of certain daemonset pods ([DaemonSets include certain tolerations by default](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/#taints-and-tolerations)). \n
 To view the pods and which nodes they are on, use `kubectl get po -n scheduling -o wide`. You can also describe the nodes you've tainted to see which pods have been scheduled there.
 
 Next, we want to allow certain pods to have the ability to ignore the taint and schedule on these tainted nodes.
@@ -59,7 +61,7 @@ To add a toleration to the pods, edit the deployment and add the field `spec.tem
 The deployment will perform a rolling update, creating new pods in the process which can now be scheduled on the tainted nodes.
 
 #### Note
-Pods will not necessarily be scheduled on the tainted nodes, this step just allows them to be. If no pods were added to the tainted nodes, scale up the deployment (`kubectl scale deploy special replicas=[desired number of pods]`) until pods appear on the tainted node
+Pods will not necessarily be scheduled on the tainted nodes, this step just allows them to be. If no pods were added to the tainted nodes, scale up the deployment (`kubectl scale deploy special -n scheduling replicas=[desired number of pods]`) until pods appear on the tainted node
 
 
 ## Node Selector
@@ -68,7 +70,7 @@ Taints prevent unwanted pods to schedule on specific nodes, this is good if cert
 Alternatively, we can use Node Selector to ensure that your pod is scheduled on a specific node or group of nodes.
 
 Node Selector relies on node labels. Nodes have some labels built in by default, you can view these using `kubectl describe no [node_name] | grep Labels -A 15`.
-You can also manually add specific labels to a node; GKE allows you to assign node labels for an entire node pool, otherwise, you can assign a label to a node manually using `kubectl label no [node_name] key=value`.
+You can also manually add specific labels to a node; GKE allows you to assign node labels for an entire node pool, otherwise, you can assign a label to a node manually using `kubectl label no [node_name] [key]=[value]`. \n
 Node Selector will work with either built-in labels or custom labels. Please update the nodes you previously tainted with a common label (you choose the key=value, ensure that it is consistent).
 
 Next, we'll update the `special` deployment to use Node Selector matching the labels we assigned to the nodes.
@@ -158,10 +160,15 @@ Depending on the size of your nodes and your cluster, this update may not have a
 Let's try to highlight the impact by tweaking our deployments.
 
 1. Scale down the webserver deployment
+
 `kubectl scale deploy webserver --replicas 1 -n scheduling`
+
 2. Note, affinity only applies during scheduling, so let's force the pods to reschedule
+
 `kubectl delete po --all -n scheduling`
+
 3. Now, once the pods are scheduled, we should see the `pressure` pods grouping as much as possible with the `webserver` pods
+
 `kubectl get po -n scheduling -o wide`
 
 #### Anti-Affinity
@@ -200,8 +207,9 @@ Let's change the topologyKey now to zonal and see what happens.
 
 <pre>
 kubectl patch deploy webserver -n scheduling -p \
-'{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity":{"requiredDuringSchedulingIgnoredDuringExecution": \
+'{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity": \
+{"requiredDuringSchedulingIgnoredDuringExecution": \
 {"topologyKey": "failure-domain.beta.kubernetes.io/zone"}}}}}}}'
-<\pre>
+</pre>
 
 If your cluster is in a single zone, you should only see a single pod due to the topologyKey. If the cluster spans multiple zones, you should have as many pods as there are zones.
