@@ -10,7 +10,7 @@
 Before you get started with this workshop, you will need to have a Cluster with some default nodes, ideally without any taints.
 You will need to create the cluster resources we will be working with by applying `deploy.yaml`, make sure to run:
 
-`kubectl apply -f deploy.yaml`
+    kubectl apply -f deploy.yaml
 
 This will create a number of pods, services and other resources required to get started.
 
@@ -32,7 +32,7 @@ Apply a default resource request and limit value for the `scheduling` namespace
 Enforce memory and CPU constraints in the `scheduling` namespace to ensure that no pod requests more than 500mb and 250m.
 Now that there are constraints and default values set, clear all the pods from the namespace so that the rules get applied to your pods
 
-   `kubectl delete po --all -n scheduling`
+    kubectl delete po --all -n scheduling
 
 Setting limits works in basically the same way as setting requests. Note that resource limits do not affect pod scheduling, it is used to ensure your containers do not consume too much CPU or memory and is good practice to use.
 
@@ -44,7 +44,7 @@ To get a better understanding of how this works, we'll start by creating new nod
 NOTE If you are using GKE, you can taint the entire node pool during node pool creation
 You can apply a taint to a node manually using this command:
 
-`kubectl taint nodes [node_name] [key]=[value]:[effect]`
+    kubectl taint nodes [node_name] [key]=[value]:[effect]
 
 The defined key and value can be anything you want to use, just make sure to keep note of it. The effect will normally be `NoSchedule`, make sure to review the `PreferredNoSchedule` and the `Execute` effects as well.
 
@@ -161,15 +161,15 @@ Let's try to highlight the impact by tweaking our deployments.
 
 1. Scale down the webserver deployment
 
-`kubectl scale deploy webserver --replicas 1 -n scheduling`
+       kubectl scale deploy webserver --replicas 1 -n scheduling
 
 2. Note, affinity only applies during scheduling, so let's force the pods to reschedule
 
-`kubectl delete po --all -n scheduling`
+       kubectl delete po --all -n scheduling
 
 3. Now, once the pods are scheduled, we should see the `pressure` pods grouping as much as possible with the `webserver` pods
 
-`kubectl get po -n scheduling -o wide`
+       kubectl get po -n scheduling -o wide
 
 #### Anti-Affinity
 
@@ -198,7 +198,7 @@ We also used `requiredDuringSchedulingIgnoredDuringExecution` which means the ru
 Edit the `webserver` deployment and add the above affinity block to it.
 Now let's scale up the deployment. 
 
-`kubectl scale deploy -n scheduling webserver --replicas 5`
+    kubectl scale deploy -n scheduling webserver --replicas 5
 
 You should see each of your pods on a different node. If you have less than 5 nodes, not all the pods will be scheduled which would trigger auto-scaling if you have it enabled.
 If you have more than 5 or more nodes, all your pods should be scheduled on a different node. This is similar to a daemonset only it does not force a 1:1 ration between nodes and pods, you'll get as many pods as you asked for.
@@ -215,4 +215,4 @@ If your cluster is in a single zone, you should only see a single pod due to the
 
 ## Clean up
 
-`kubectl delete ns scheduling`
+    kubectl delete ns scheduling
