@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scaling
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scalable-workload
+  namespace: scaling
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: scalable
+  template:
+    metadata:
+      labels:
+        app: scalable
+    spec:
+      containers:
+      - name: scalable-workload
+        image: https
+        resources:
+          requests:
+            cpu: 200m
