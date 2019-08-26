@@ -49,7 +49,7 @@ containers:
 We might want to use a standard deployment to create multiple database pods that have different variables. Instead of manually updating the deployment each time we want to make a change. Instead, we will [create a ConfigMap](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/) that will contain the MYSQL_DATABASE and MYSQL_USER data.
 To keep things simple, let's create the ConfigMap using [literal values](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#create-configmaps-from-literal-values). Run the following command:
 
-  kubectl create configmap db-variables --from-literal=database=[database_name] --from-literal=db-user=[username]
+    kubectl create configmap db-variables --from-literal=database=[database_name] --from-literal=db-user=[username]
 
 Take a look at the resource you just created using `kubectl describe cm db-variables`
 
