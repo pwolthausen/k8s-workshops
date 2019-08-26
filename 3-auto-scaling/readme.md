@@ -24,7 +24,7 @@ This means that the scale up action is only considered when a pod is unschedulab
 
 You can enable Node Pool Auto-Scaling at the node pool level either during node pool creation or by updating it. This can be done through the GUI by editing the Node Pool or by using the following command from the command line:
 
-`gcloud container clusters update [cluster_name] --node-pool [node_pool_name] --enable-autoscaling --min-nodes [num_nodes] --max-nodes [num_nodes]`
+    gcloud container clusters update [cluster_name] --node-pool [node_pool_name] --enable-autoscaling --min-nodes [num_nodes] --max-nodes [num_nodes]
 
 Make sure that you have enough GCE resource quotas to handle the max number of nodes selected. 
 For the following examples, set the min to 2 and the max to 6 
@@ -33,21 +33,21 @@ As soon as the update completes, the auto-scaler logic will kick in. If you have
 
 To highlight the Node Pool Auto-scaling functionality, deploy the `node-scaling.yaml` 
 
-`kubectl apply -f node-scaling.yaml`
+    kubectl apply -f node-scaling.yaml
 
 If creating this deployment does not trigger a scale up action, add more pods by scaling up the deployment
 
-`kubectl scale deploy -n scaling scalable-workload --replicas 50`
+    kubectl scale deploy -n scaling scalable-workload --replicas 50
 
 This should cause the cluster to reach the maximum of 6 nodes, even though there are still unschedulable pods. 
 During the process, you can also view the auto-scaler confiMap to see the status and actions taken by the auto-scaler.
 
-`kubectl describe cm -n kube-system cluster-autoscaler-status` 
+    kubectl describe cm -n kube-system cluster-autoscaler-status
 
 The scale up process should happen pretty quickly, once a pod is unschedulable, the auto-scaler should detect it and scale up a new node. 
 The scale down process, however, takes longer to detect. To scale down, we need to make sure the nodes are under utilized, so we'll scale down the deployment to 1. Describe the configMap periodically to watch the auto-scaler's logic.
 
-`kubectl scale deploy -n scaling scalable-workload --replicas 1`
+    kubectl scale deploy -n scaling scalable-workload --replicas 1
 
 
 ### 2. Node Auto-Provisionning
@@ -58,13 +58,37 @@ In contrast, Node Auto-Provisioning (NAP) will add an entirely new node pool to 
 Make sure to review the [GCP public docs for more details](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning) on NAP. We won't be covering all the different criteria that can trigger NAP to create new nodes, the document will provide you more details.  
 Start by enabling NAP on your cluster:
 
-`gcloud beta container clusters update [CLUSTER_NAME] --enable-autoprovisioning --max-cpu [num] --max-memory [num]`
+    gcloud beta container clusters update [CLUSTER_NAME] --enable-autoprovisioning --max-cpu [num] --max-memory [num]
 
 Let's take a closer look at the two key flags:
 - `--max-cpu` defines the maximum number of CPU coress your cluster can use. This includes any CPU currently in use as well as any CPU used by future nodes due to the Node Pool Auto-Scaler. 
 - `--max-memory` defines how much RAM in Gb you are willing to assign to your cluster. 
 
+    NOTE you can also specify GPU types and number of GPUs
+
 Based on the above, note that NAP takes more planning to put into place than the Node Pool Auto-Scaler. You need to calculate how many resources are currently in use, how many may be used by auto-scaling and then determine how much more you are willing to assign to new nodes for NAP to use. 
 
 Let's use our current cluster as an example:
-- The default standard cluster will use  
+- The default standard cluster will use nodes with 1 CPU and 3.75GB of memory
+- The maximum number of nodes in the current node pool is 6
+- We want to allow up to an addition 10 cores and 40Gb of memory
+
+The cluster will use 6 CPU and 22.5GB if memory if it gets to 6 nodes. To handle the additional cap for NAP, we'll use `--max-cpu 16 --max-memory 62.5` as the flags for the above command. 
+Once the update is complete, create the `bigload` deployment to highlight NAP functionality which should create a new node pool to accomadate the larger requests.
+
+    kubectl apply -f bigload.yaml  
+
+    NOTE: When you enable NAP, there is the option to use the `--autoprovisioning-scopes` flag to set the scopes of the node pool. NAP node pools will not automatically use the same scopes as the rest of your cluster.
+
+NAP can also provision new nodes with node labels to allow for pods with node selector or node affinity enabled to be scheduled:
+
+    kubectl apply -f selective-pods.yaml  
+
+If you delete the two last deployments, NAP should scale down the cluster
+
+    kubectl delete deploy -n scaling -l app=nap
+
+
+## Pod level Auto-Scaling
+
+### 3. 
