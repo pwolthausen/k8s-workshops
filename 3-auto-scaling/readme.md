@@ -47,7 +47,7 @@ During the process, you can also view the auto-scaler confiMap to see the status
 The scale up process should happen pretty quickly, once a pod is unschedulable, the auto-scaler should detect it and scale up a new node. 
 The scale down process, however, takes longer to detect. To scale down, we need to make sure the nodes are under utilized, so we'll scale down the deployment to 1. Describe the configMap periodically to watch the auto-scaler's logic.
 
-    kubectl scale deploy -n scaling scalable-workload --replicas 1
+    kubectl scale deploy -n scaling scalable-workload --replicas 4
 
 
 ### 2. Node Auto-Provisionning
@@ -91,4 +91,36 @@ If you delete the two last deployments, NAP should scale down the cluster
 
 ## Pod level Auto-Scaling
 
-### 3. 
+### 3. Horizontal Pod Auto-scaling
+
+Horizontal Pod Aut-scaling (HPA) is a kubernetes feature that allows your replicasets to scale up or down based on the resource usage of the pods controlled by the replicaset. The built in functionality only works with CPU utilization (which relies on current CPU usage Vs CPU requested) or custom metrics (Which are reaw values). Read more about HPA and the algorythm it uses [here](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/). 
+
+To use HPA, you must create an HPA resource in your cluster. Each HPA will target a single resource (normally this will be a Deployment). 
+To demonstrate, we'll create an HPA for the `scalable-workload` deployment which should be at 4 replicas. 
+First, we'll define the HPA:
+
+<pre>
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: scalable-workload-hpa
+  namespace: scaling
+spec:
+  maxReplicas: 20
+  minReplicas: 2
+  targetCPUUtilizationPercentage: 75
+  scaleTargetRef:
+    kind: Deployment
+    name: scalable-workload
+</pre>
+
+- `minReplicas` and `maxReplicas` are integers and define the minimum and maximum number of pods HPA can set
+- `targetCPUUtilizationPercentage` is a percentage of CPU usage determine by (cpu usage/cpu requests) averaged across all pods. HPA will predict how mant replicas are required to be as close to this target as possible while within the limits defined.
+- `scaleTargetRef` defines which resource will be scaled (normally a Deployment, but can also be a replicaSet or replicationController)
+
+Currently, the deployment should still have 4 pods and these pods should be severely under utilized. After applying this config, we should see the number of pods drop down to 2 (the minimum number of replicas allowed)
+
+    kubectl apply -f hpa.yaml
+
+If we were to add content to the website and apply heavy load to it, we should eventually see it scale back up. 
+NOTE: If HPA is not scaling up your pods in a desired way, you may need to tweak the target usage value in the HPA and modify the CPU requests in your deployment.
