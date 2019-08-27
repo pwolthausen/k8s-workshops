@@ -20,7 +20,7 @@ spec:
         - -c
         - >
           i=0;
-          while [ $i -le 10];
+          while [ $i -le 10 ];
           do
             echo "$i: $(date)"
             i=$((i+1));
