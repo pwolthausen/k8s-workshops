@@ -1,0 +1,232 @@
+resources:
+- name: dev
+  type: {{ env['project'] }}/narwhal-v1:/api/v1/namespaces
+  metadata:
+    dependsOn:
+    - narwhal-v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: dev
+- name: deploy-echo
+  type: {{ env['project'] }}/narwhal-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - dev
+  properties:
+    namespace: dev
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: echoheaders
+      labels:
+        app: echoheader
+      namespace: dev
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: echoheader
+      template:
+        metadata:
+          labels:
+            app: echoheader
+        spec:
+          containers:
+          - name: echoheaders
+            image: gcr.io/google_containers/echoserver:1.4
+            ports:
+            - containerPort: 8080
+            readinessProbe:
+              httpGet:
+                path: /healthz
+                port: 8080
+- name: service-echo
+  type: {{ env['project'] }}/narwhal-v1:/api/v1/namespaces/{namespace}/services
+  metadata:
+    dependsOn:
+    - dev
+  properties:
+    namespace: dev
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: echo-svc
+      namespace: dev
+    spec:
+      type: NodePort
+      selector:
+        app: echoheader
+      ports:
+      - name: http
+        port: 80
+        targetPort: 8080
+- name: ingress-echo
+  type: {{ env['project'] }}/narwhal-v1beta1-extensions:/apis/extensions/v1beta1/namespaces/{namespace}/ingresses
+  metadata:
+    dependsOn:
+    - dev
+  properties:
+    namespace: dev
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      name: echo-ing
+      namespace: dev
+    spec:
+      backend:
+        serviceName: echo-svc
+        servicePort: 80
+      rules:
+      - host: foo.bar.com
+        http:
+          paths:
+          - backend: 
+              serviceName: echo-svc
+              servicePort: 80
+            path: /foo 
+- name: borked
+  type: {{ env['project'] }}/narwhal-v1:/api/v1/namespaces
+  metadata:
+    dependsOn:
+    - narwhal-v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: borked
+- name: state-fab
+  type:  {{ env['project'] }}/narwhal-v1-apps:/apis/apps/v1/namespaces/{namespace}/statefulsets
+  metadata:
+    dependsOn:
+    - borked
+  properties:
+    namespace: borked
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: the-fab-four
+      namespace: borked
+    spec:
+      podManagementPolicy: Parallel
+      replicas: 4
+      selector:
+        matchLabels:
+          app: loner
+      template:
+        metadata: 
+          labels:
+            app: loner
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - loner
+                topologyKey: kubernetes.io/hostname
+          containers:
+          - image: nginx
+            name: the-beatles
+            resources:
+              requests:
+                cpu: 50m
+                memory: 50Mi
+- name: deploy-fail
+  type:  {{ env['project'] }}/narwhal-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - borked
+  properties:
+    namespace: borked
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: fail
+      namespace: borked
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: fail
+      template:
+        metadata:
+          labels:
+            app: fail
+        spec:
+          containers:
+          - name: plain-os
+            image: ubuntu
+            resources:
+              requests:
+                cpu: 75m
+                memory: 100Mi
+
+- name: api
+  type:  {{ env['project'] }}/narwhal-v1:/api/v1/namespaces
+  metadata:
+    dependsOn:
+    - narwhal-v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: api
+- name: deploy-api
+  type:  {{ env['project'] }}/narwhal-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - api
+  properties:
+    namespace: api
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: api
+      namespace: api
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: api
+      template:
+        metadata:
+          labels:
+            app: api
+        spec:
+          containers:
+          - name: api
+            image: jazzdd/alpine-flask:python3
+            resources:
+              requests:
+                cpu: 50m
+                memory: 50Mi
+- name: netpol-api
+  type: {{ env['project'] }}/narwhal-v1-networking:/apis/networking.k8s.io/v1/namespaces/{namespace}/networkpolicies
+  metadata:
+    dependsOn:
+    - api
+  properties:
+    namespace: api
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: deny-all-egress
+      namespace: api
+    spec:
+      podSelector:
+        matchLabels:
+          app: api
+      policyTypes: 
+      - Egress
+      egress:
+      - to:
+        - ipBlock:
+            cidr: 10.4.0.0/14
+        ports:
+        - protocol: UDP
+          port: 22

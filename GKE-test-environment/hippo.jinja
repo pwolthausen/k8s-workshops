@@ -1,0 +1,150 @@
+resources:
+- name: nginx
+  type: {{ env['project'] }}/hippo-v1:/api/v1/namespaces
+  metadata:
+    dependsOn:
+    - hippo-v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: nginx
+- name: webservice
+  type: {{ env['project'] }}/hippo-v1:/api/v1/namespaces
+  metadata:
+    dependsOn:
+    - hippo-v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: webservice
+
+- name: deploy-nginx
+  type: {{ env['project'] }}/hippo-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - nginx
+  properties:
+    apiVersion: apps/v1
+    kind: Deployment
+    namespace: nginx
+    metadata:
+      name: nginx
+      namespace: nginx
+      labels:
+        app: nginx
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: nginx
+      template:
+        metadata:
+          labels:
+            app: nginx
+        spec:
+          containers:
+          - name: nginx
+            image: nginx:alpine
+            ports:
+            - containerPort: 80
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 80
+- name: service-nginx
+  type: {{ env['project'] }}/hippo-v1:/api/v1/namespaces/{namespace}/services
+  metadata:
+    dependsOn:
+    - nginx
+  properties: 
+    apiVersion: v1
+    kind: Service
+    namespace: nginx
+    metadata:
+      name: nginx
+      namespace: nginx
+    spec:
+      type: LoadBalancer
+      selector:
+        app: nginx
+      ports:
+      - port: 80
+        targetPort: 8080
+
+- name: deploy-webserver
+  type: {{ env['project'] }}/hippo-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - webservice
+  properties:
+    namespace: webservice
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: webserver
+      namespace: webservice
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: webserver
+      template:
+        metadata:
+          labels:
+            app: webserver
+        spec:
+          containers:
+          - name: webserver
+            image: nginx:latest
+            ports:
+            - containerPort: 80
+- name: service-webserver
+  type: {{ env['project'] }}/hippo-v1:/api/v1/namespaces/{namespace}/services
+  metadata:
+    dependsOn:
+    - webservice
+  properties:
+    namespace: webservice
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: webserver
+      namespace: webservice
+    spec:
+      type: LoadBalancer
+      ports:
+      - port: 80
+      selector:
+        app: webserver
+      loadBalancerSourceRanges:
+      - 192.168.0.0/16
+      - 35.232.228.81/32
+
+- name: deploy-promsd
+  type: {{ env['project'] }}/hippo-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - hippo-v1-apps
+  properties:
+    namespace: default
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: promsd
+      labels:
+        app: prometheus
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: prometheus
+      template:
+        metadata:
+          labels:
+            app: prometheus
+        spec:
+          containers:
+          - name: prometheus-to-sd
+            image: quay.io/prometheus/prometheus:v2.4.3

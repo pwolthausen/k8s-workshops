@@ -1,0 +1,170 @@
+resources:
+- name: namespace-bigjob
+  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1:/api/v1/namespaces
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: bigjob
+- name: deploy-bigjob
+  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - namespace-bigjob
+  properties:
+    apiVersion: apps/v1
+    kind: Deployment
+    namespace: bigjob
+    metadata:
+      name: bigjob
+      namespace: bigjob
+    spec:
+      replicas: 5
+      selector:
+        matchLabels:
+          app: bigjob
+      template:
+        metadata:
+          labels:
+            app: bigjob
+        spec:
+          containers:
+          - name: bigjob
+            image: wordpress
+            resources:
+              requests:
+                cpu: 1500m 
+- name: deploy-job
+  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  properties:
+    apiVersion: apps/v1
+    kind: Deployment
+    namespace: default
+    metadata:
+      name: job
+      labels:
+        app: job
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: job
+      template:
+        metadata:
+          labels:
+            app: job
+        spec:
+          containers:
+          - name: busybox
+            image: busybox
+- name: working
+  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1:/api/v1/namespaces
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name:  working
+- name: deploy-working
+  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - working
+  properties:
+    apiVersion: apps/v1
+    kind: Deployment
+    namespace: working
+    metadata: 
+      name: working
+      namespace: working
+      labels:
+        app: working
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: working
+      template:
+        metadata:
+          labels:
+            app: working
+        spec:
+          containers:
+          - name: working
+            image: jazzdd/alpine-flask:python3
+            ports:
+            - containerPort: 80
+            readinessProbe:
+              httpGet:
+                path: /probe/ready
+                port: 80
+- name: deploy-working1
+  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - working
+  properties:
+    apiVersion: apps/v1
+    kind: Deployment
+    namespace: working
+    metadata:
+      name: working1
+      namespace: working
+      labels:
+        app: working
+        version: v2
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: working
+          version: v2
+      template:
+        metadata:
+          labels:
+            app: working
+            version: v2
+        spec:
+          containers:
+          - name: working
+            image: httpd
+            ports:
+            - containerPort: 80
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 80
+- name: service-working
+  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1:/api/v1/namespaces/{namespace}/services
+  metadata:
+    dependsOn:
+    - working
+  properties:
+    apiVersion: v1
+    kind: Service
+    namespace: working
+    metadata:
+      name: working
+      namespace:  working
+    spec:
+      type: NodePort
+      selector:
+        app: working
+      ports:
+      - port: 8080
+        targetPort: 80
+- name: ingress-working
+  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1beta1-extensions:/apis/extensions/v1beta1/namespaces/{namespace}/ingresses
+  metadata:
+    dependsOn:
+    - working
+  properties:
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    namespace: working
+    metadata:
+      name: working
+      namespace: working
+    spec:
+      backend:
+        serviceName: working
+        servicePort: 8080

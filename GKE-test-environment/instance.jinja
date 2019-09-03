@@ -1,0 +1,110 @@
+resources:
+- name: {{ properties["name"] }}
+  type: compute.v1.instance
+  properties:
+    name: {{ properties["name"] }}
+    {% if properties["tags"] %}
+    tags:
+      items:
+    {% for tag in properties["tags"] %}
+      - {{ tag }}
+    {% endfor %}
+    {% endif %}
+    machineType: projects/{{ env["project"] }}/zones/{{ properties["zone"] }}/machineTypes/{{ properties["machineType"] }}
+    zone: {{ properties["zone"] }}
+    networkInterfaces:
+    {% for eth in properties["networkInterfaces"] %}
+    - {% if eth["hostProject"] %}
+      network: projects/{{ eth["hostProject"] }}/global/networks/{{ eth["network"] }}
+      subnetwork: projects/{{ eth["hostProject"] }}/regions/{{ properties["region"] }}/subnetworks/{{ eth["subnetwork"] }}
+      {% else %}
+      network: projects/{{ env["project"] }}/global/networks/{{ eth["network"] }}
+      subnetwork: projects/{{ env["project"] }}/regions/{{ properties["region"] }}/subnetworks/{{ eth["subnetwork"] }}
+      {% endif %}
+      {% if eth["natIP"] or eth["ptrName"] %}
+      accessConfigs:
+        {% if eth["natIP"] %}
+        natIP: {{ eth["natIP"] }}
+        {% endif %}
+        {% if eth["ptr"] %}
+        setPublicPtr: true
+        publicPtrDomainName: {{ eth["ptrName"] }}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    disks:
+    - boot: true
+      autoDelete: {{ properties["autoDelete"] }}
+      initializeParams:
+        {% if properties["sourceSnapshot"] %}
+        sourceSnapshot: {{ properties["sourceSnapshot"] }}
+        {% else %}
+        sourceImage: {{ properties["image"] }}
+        {% endif %}
+        diskSizeGb: {{ properties["diskSize"] }}
+        diskType: /zones/{{ properties["zone"] }}/diskTypes/{{ properties["diskType"] }}
+    {% if properties["addDisks"] %}
+    {% for disk in properties["addDisks"] %}
+    - $(ref.{{ disk["name"] }}.selfLink)
+    {% endfor %}
+    {% endif %}
+    metadata:
+      items:
+      - key: enable-oslogin
+        {% if properties["osLogin"] %}
+        value: "true"
+        {% else %}
+        value: "false"
+        {% endif %}
+      {% if properties["metadata"] %}
+      {% for items in properties["metadata"] %}
+      - key: {{ items["key"] }}
+        value: '{{ items["value"] }}'
+      {% endfor %}
+      {% endif %}
+  {% if properties["serviceAccount"] %}
+    serviceAccounts:
+    {% if properties["serviceAccount"] == "default" %}
+    - email: {{ env["project"] }}-compute@developer.gserviceaccount.com
+      scopes:
+      {% if properties["scopes"] %}
+      {% for scope in properties["scopes"] %}
+      - https://www.googleapis.com/auth/{{ scope }}
+      {% endfor %}
+      {% else %}
+      - https://www.googleapis.com/auth/devstorage.read_only
+      - https://www.googleapis.com/auth/logging.write
+      - https://www.googleapis.com/auth/monitoring.write
+      - https://www.googleapis.com/auth/servicecontrol
+      - https://www.googleapis.com/auth/service.management.readonly
+      - https://www.googleapis.com/auth/trace.append
+      {% endif %}
+    {% else %}
+    - email: {{ properties["serviceAccount"] }}
+      scopes:
+      - https://www.googleapis.com/auth/cloud-platform
+    {% endif %}
+  {% endif %}
+    {% if properties["labels"] %}
+    labels:
+    {% for label in properties["labels"] %}
+    - key: {{ label["key"] }}
+      value: {{ label["value"] }}
+    {% endfor %}
+    {% endif %}
+{% if properties["addDisks"] %}
+{% for disk in properties["addDisks"] %}
+- name: disk-{{ disk["name"] }}
+  type: compute.v1.disk
+  properties:
+    name: {{ disk["name"] }}
+    zone: {{ properties["zone"] }}
+    sizeGb: {{disk["size"] }}
+    type: /zones/{{ properties["zone"] }}/diskTypes/{{ disk["diskType"] }}
+    {% if disk["sourceSnapshot"] %}
+    sourceSnapshot: {{ disk["sourceSnapshot"] }}
+    {% elif disk["image"] %}
+    sourceImage: {{ disk["image"] }}
+    {% endif %}
+{% endfor %}
+{% endif %}

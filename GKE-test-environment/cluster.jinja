@@ -1,0 +1,99 @@
+resources:
+- name: {{ properties["name"] }}
+  type: gcp-types/container-v1beta1:projects.locations.clusters
+  properties:
+    parent: projects/{{ env["project"] }}/locations/{{ properties["location"] }}
+    cluster:
+      name: {{ properties["name"] }}      
+      network: {{ properties["network"] }}
+      subnetwork: {{ properties["subnetwork"] }}
+      initialClusterVersion: {{ properties["version"] }}
+      {% if properties["vpc-native"] %}
+      ipAllocationPolicy:
+        useIpAliases: true
+        {% if properties["pod-cidr"] %}
+        createSubnetworks: false
+        clusterSecondaryRangeName: {{ properties["pod-cidr"] }}
+        servicesSecondaryRangeName: {{ properties["service-cidr"] }}
+        {% else %}
+        createSubnetworks: true
+        {% endif %}
+      {% endif %}
+      {% if properties["networkPolicy"] %}
+      networkPolicy:
+        provider: CALICO
+        enabled: true
+      {% endif %}
+      {% if properties["private-cluster"] %}
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        {% if properties["hosts"] %}
+        {% for host in properties["hosts"] %}
+        - displayName: {{ host["host-name"] }}
+          cidrBlock: {{ host["host-cidr"] }}
+        {% endfor %}
+        {% endif %}
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: {{ properties["enablePrivateEndpoint"] }}
+        masterIpv4CidrBlock: {{ properties["master-cidr"] }}
+      {% endif %}
+      nodePools:
+      {% for pool in properties["nodePools"] %}
+      - name: {{ pool["name"] }}
+        initialNodeCount: {{ pool["initialNodeCount"] }}
+        {% if pool["minNodeCount"] %}
+        autoscaling:
+          enabled: true
+          minNodeCount: {{ pool["minNodeCount"] }}
+          maxNodeCount: {{ pool["maxNodeCount"] }}
+        {% else %}
+        autoscaling:
+          enabled: false
+        {% endif %}
+        management:
+        {% if pool["image"]=="cos" %}
+          autoUpgrade: true
+          autoRepair: true
+        {% else %}
+          autoUpgrade: false
+          autoRepair: false
+        {% endif %}
+        config:
+          imageType: {{ pool["image"] }}
+          machineType: {{ pool["machineType"] }}
+          diskSizeGb: 100
+          preemptible: false
+          oauthScopes:
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring
+          - https://www.googleapis.com/auth/servicecontrol
+          - https://www.googleapis.com/auth/service.management.readonly
+          - https://www.googleapis.com/auth/trace.append
+      {% endfor %}
+      ##Configure how to auth against master endpoint. Disable both will rely on IAM
+      masterAuth:
+        clientCertificateConfig:
+          issueClientCertificate: false
+        username: ""
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      {% if properties["locations"] %}
+      locations:
+      {% for zone in properties["locations"] %}
+      - {{ zone }}
+      {% endfor %}
+      {% endif %}
+      addonsConfig:
+        kubernetesDashboard:
+          disabled: true
+        httpLoadBalancing:
+          disabled: {{ properties["httpLB"] }}
+        istioConfig:
+          disabled: {{ properties["istio"] }}
+        {% if properties["networkPolicy"] %}
+        networkPolicyConfig:
+          disabled: false
+        {% endif %}

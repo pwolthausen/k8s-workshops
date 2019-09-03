@@ -1,0 +1,106 @@
+resources:
+- name: mounter
+  type: {{ env['project'] }}/mongoose-v1:/api/v1/namespaces
+  metadata:
+    dependsOn:
+    - mongoose-v1
+  properties: 
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: mounter
+- name: deploy-mounter
+  type:  {{ env['project'] }}/mongoose-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - mounter
+  properties:
+    namespace: mounter
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: mounter
+      namespace: mounter
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          mount: volume
+      template:
+        metadata: 
+          labels:
+            mount: volume
+        spec:
+          containers:
+          - name: volume-required
+            image: httpd
+            resources:
+              requests:
+                cpu: 50m
+                memory: 50Mi
+            volumeMounts:
+            - mountPath: /var/www/html
+              name: mountedVolume
+          volumes:
+          - configMap:
+              name: apache-index
+            name: mountedVolume
+
+- name: deploy-generic
+  type:  {{ env['project'] }}/mongoose-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - mongoose-v1-apps
+  properties:
+    namespace: default
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: generic-workload
+      labels:
+        app: generic
+    spec:
+      replicas: 4
+      selector:
+        matchLabels:
+          app: generic
+      template:
+        metadata:
+          labels:
+            app: generic
+        spec:
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 75
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                      - generic
+                  topologyKey: kubernetes.io/hostname
+          containers:
+          - name: generic-app
+            image: nginx:alpine
+            resources:
+              requests:
+                cpu: 25m
+                memory: 25Mi
+- name: pdb
+  type:  {{ env['project'] }}/mongoose-v1beta1-policy:/apis/policy/v1beta1/namespaces/{namespace}/poddisruptionbudgets
+  metadata:
+    dependsOn:
+    - mongoose-v1beta1-policy
+  properties:
+    namespace: default
+    apiVersion: policy/v1beta1
+    kind: PodDisruptionBudget
+    metadata:
+      name: restrictive-pdb
+    spec:
+      maxUnavailable: 0
+      selector:
+        matchLabels:
+          app: generic

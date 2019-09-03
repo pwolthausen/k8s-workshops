@@ -124,3 +124,5 @@ Currently, the deployment should still have 4 pods and these pods should be seve
 
 If we were to add content to the website and apply heavy load to it, we should eventually see it scale back up. 
 NOTE: If HPA is not scaling up your pods in a desired way, you may need to tweak the target usage value in the HPA and modify the CPU requests in your deployment.
+
+As mentioned, you can also define HPA to work with custom metrics. As an example, follow [this guide](https://cloud.google.com/kubernetes-engine/docs/tutorials/custom-metrics-autoscaling)

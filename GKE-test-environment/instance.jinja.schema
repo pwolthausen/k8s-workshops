@@ -1,0 +1,116 @@
+import:
+  - path: instance.jinja
+
+required:
+  - name
+  - region
+  - zone
+
+properties:
+  name: 
+    type: string
+    description: name of the virtual machine
+
+  region:
+    type: string
+    description: region where VM and disks will be created
+
+  zone:
+    type: string
+    description: zone where VM is to be created
+
+  machineType:
+    type: string
+    description: number of cores and amount of memory, can use standard or custom machine types
+    default: n1-standard-1
+
+  networkInterfaces:
+    type: array
+    items:
+      type: object
+      properties:
+        hostProject:
+          type: string
+          description: define the host project id if using shared VPC (leave blank if not using shared VPC)
+        network:
+          type: string
+          default: default
+        subnetwork:
+          type: string
+          default: default
+        natIP:
+          type: string
+          description: Can assign a previously reserved and currently unused static IP
+        ptrName:
+          type: string
+          description: assign a PTR name for the instance to be used within the project.
+
+  tags:
+    type: array
+    description: network tags to be assigned to the instance, used for routes and firewall rules
+    items:
+      type: string
+
+  autoDelete:
+    type: boolean
+    description: True causes the boot disk to be deleted when the VM is deleted
+    default: false
+
+  sourceSnapshot:
+    type: string
+    description: Full URL of snapshot to be used to create the boot disk, if used, replaces image.
+
+  image:
+    type: string
+    description: Full URL of image or image family to be used for boot disk, only used if Snapshot is not defined
+    default: projects/debian-cloud/global/images/family/debian-9
+
+  diskSize:
+    type: int
+    description: size, in GB of the boot disk
+    default: 10
+
+  diskType:
+    type: string
+    description: Choose type of boot disk, HDD or SSD
+    default: pd-standard
+    enum:
+    - pd-standard
+    - pd-ssd
+
+
+  addDisks:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        size:
+          type: string
+          description: size in GB of the disk
+        diskType:
+          type: string
+          enum:
+          - pd-standard
+          - pd-ssd
+        sourceSnapshot:
+          type: string
+          description: Full URL of snapshot to be used to create the boot disk, if used, replaces image.
+        image:
+          type: string
+          description: Full URL of image or image family to be used for boot disk, only used if Snapshot is not defined
+
+  osLogin:
+    type: string
+    description: set to "enabled" to enable osLogin for the VM
+
+  serviceAccount:
+    type: string
+    description: only define if using a custom service account, will use default compute otherwise
+
+  scopes:
+    type: array
+    description: if using default service account, list of scopes fpr the instance. Leave blank for default
+    items: 
+      type: string
