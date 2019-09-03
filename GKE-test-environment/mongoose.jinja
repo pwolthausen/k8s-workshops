@@ -9,11 +9,39 @@ resources:
     kind: Namespace
     metadata:
       name: mounter
-- name: deploy-mounter
-  type:  {{ env['project'] }}/mongoose-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+- name: mounter-sa
+  type: {{ env['project'] }}/mongoose-v1:/api/v1/namespaces/{namespace}/serviceaccounts
   metadata:
     dependsOn:
     - mounter
+  properties:
+    namespace: mounter
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: no-access
+      namespace: mounter
+- name: mounter-cm
+  type: {{ env['project'] }}/mongoose-v1:/api/v1/namespaces/{namespace}/configmaps
+  metadata:
+    dependsOn:
+    - mounter
+  properties:
+    namespace: mounter
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: apache-index
+      namespace: mounter
+    data:
+      index.html: |
+        you don't have permission to mount this volume
+- name: deploy-mounter
+  type: {{ env['project'] }}/mongoose-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - mounter
+    - mounter-cm
   properties:
     namespace: mounter
     apiVersion: apps/v1
@@ -31,6 +59,7 @@ resources:
           labels:
             mount: volume
         spec:
+          serviceAccountName: no-access
           containers:
           - name: volume-required
             image: httpd

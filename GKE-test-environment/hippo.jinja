@@ -72,6 +72,20 @@ resources:
       ports:
       - port: 80
         targetPort: 8080
+- name: ingress-nginx
+  type: {{ env['project'] }}/hippo-v1beta1-extensions:/apis/extensions/v1beta1/namespaces/{namespace}/ingresses
+  metadata:
+    dependsOn:
+    - hippo-v1beta1-extensions
+  properties:
+    namespace: default
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      name: nginx
+    spec:
+      backend:
+        serviceName: nginx
 
 - name: deploy-webserver
   type: {{ env['project'] }}/hippo-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments

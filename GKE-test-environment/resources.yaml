@@ -27,13 +27,13 @@ resources:
     secondaryIpRanges:
       - rangeName: pods
         ipCidrRange: 10.0.0.0/9
-      - rangeName: services1
+      - rangeName: pods1
         ipCidrRange: 172.16.0.0/23
-      - rangeName: services2
+      - rangeName: services1
         ipCidrRange: 172.16.16.0/20
-      - rangeName: services3
+      - rangeName: services2
         ipCidrRange: 172.16.2.0/23
-      - rangeName: services4
+      - rangeName: services3
         ipCidrRange: 172.16.32.0/20
 - name: allow-internal
   type: compute.v1.firewall
@@ -115,8 +115,8 @@ resources:
     region: us-central1
     zone: us-central1-c
     networkInterfaces:
-    - network: another-vpc
-      subnetwork: not-as-local
+    - network: local-vpc
+      subnetwork: primary-local
       natIP: $(ref.bastionip.address)
     tags:
     - bastion
@@ -161,8 +161,8 @@ resources:
     network: local-vpc
     subnetwork: primary-local
     vpc-native: true
-    pod-cidr: pods
-    service-cidr: services1
+    pod-cidr: pods1
+    service-cidr: services2
     private-cluster: true
     hosts:
     - host-name: bastion
@@ -193,7 +193,7 @@ resources:
     subnetwork: primary-local
     vpc-native: true
     pod-cidr: pods
-    service-cidr: services3
+    service-cidr: services1
     nodePools:
     - name: default
       initialNodeCount: 1

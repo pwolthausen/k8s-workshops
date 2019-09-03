@@ -4,29 +4,25 @@
 
 2. My `hippo` cluster worked fine with 2 nodes, I need to add one but it won’t work, why?
 
-3. kubectl commands from my workstation to the `hippo` cluster are timing out, this works fine from the `bastion` VM I have setup. Why do the requests from workstations timeout? 
+3. kubectl commands from my workstation to the `hippo` cluster are timing out, this works fine from the `bastion` VM I have setup. Why do the requests from workstations timeout?  
 
-4. My `zebra` cluster worked fine with 2 nodes, I need to add one but it won’t work, why?
+4. I want to manage my `mongoose` cluster from my `bastion` VM using the cluster's internal endpoint instead of the external one, why is this failing?.
 
-5. kubectl commands from the bastion VM to the `hippo` cluster are timing out, this works fine from another VM in another project called `Lampy`. Why do the requests from bastion timeout? 
+5. I have enabled autoscaling in my lion cluster, but my `bigjob` deployment still has unschedulable pods, why isn’t autoscaling working?
 
-6. I want to manage my `mongoose` cluster from my `bastion` VM using the cluster's internal endpoint instead of the external one, why is this failing?.
+6. In my “narwhal” cluster, I can’t reach my internal database from my `api` which is located in another subnet on my shared VPon prem in the 192.168.128.0/17 block. I don't have this problem with my `fab-four` pods or my bastion host.
 
-7. I have enabled autoscaling in my lion cluster, but my `bigjob` deployment still has unschedulable pods, why isn’t autoscaling working?
-
-8. In my “narwhal” cluster, I can’t reach my internal database from my `api` which is located in another subnet on my shared VPC. I don't have this problem with my `fab-four` pods or my bastion host.
-
-9. Autoscaling is enabled on the `mongoose` cluster. There are multiple nodes with under 50% resource usage, why won’t it scale down?
+7. Autoscaling is enabled on the `mongoose` cluster. There are multiple nodes with under 50% resource usage, why won’t it scale down?
 
 ## General Kubernetes
 
 1. In the `hippo` cluster, can you explain what the error message for `promsd` means? What is the cause? How can I fix this?
 
-2. Why isn’t my `working` deployment working? The pod says it’s running!
+2. Why isn’t my `working` deployment in the lion cluster working? The pod says it’s running!
 
-3. My `job` workload doesn’t seem to be working. Can you tell me what is wrong or what the next steps in debugging it would be?
+3. My `job` workload in the lion cluster doesn’t seem to be working. Can you tell me what is wrong or what the next steps in debugging it would be?
 
-4. The `fab-four` deployment should have 4 pods, why are only 2 running?
+4. The `fab-four` deployment in the narwhal cluster should have 4 pods, why are only 3 running?
 
 5. My `mounter` pod is stuck in pending, why?
 
