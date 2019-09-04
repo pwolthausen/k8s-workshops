@@ -1,0 +1,169 @@
+imports:
+- path: instance.jinja
+- path: cluster.jinja
+- path: k8s-type.py
+- path: hippo.jinja
+- path: lion.jinja
+- path: narwhal.jinja
+- path: mongoose.jinja
+
+resources:
+- name: bastionip
+  type: compute.v1.addresses
+  properties:
+    addressType: EXTERNAL
+    region: us-central1
+
+- name: instance1
+  type: instance.jinja
+  properties:
+    name: bastion
+    region: us-central1
+    zone: us-central1-c
+    networkInterfaces:
+    - network: local-vpc
+      subnetwork: primary-local
+      natIP: $(ref.bastionip.address)
+    tags:
+    - bastion
+    autoDelete: true
+    osLogin: enabled
+    metadata:
+    - key: block-project-ssh-keys
+      value: "true"
+
+- name: cluster1
+  type: cluster.jinja
+  properties:
+    name: standard-cluster-1
+    location: us-central1-a
+    network: local-vpc
+    subnetwork: primary-local
+    nodePools:
+    - name: default
+
+- name: cluster2
+  type: cluster.jinja
+  properties:
+    name: hippo
+    location: us-central1
+    network: local-vpc
+    subnetwork: primary-local
+    vpc-native: true
+    pod-cidr: pods1
+    service-cidr: services2
+    private-cluster: true
+    enablePrivateEndpoint: false
+    hosts:
+    - host-name: bastion
+      host-cidr: $(ref.bastionip.address)/32
+    master-cidr: 172.16.48.0/28
+    nodePools:
+    - name: default
+      initialNodeCount: 1
+      machineType: n1-standard-2
+- name: k8s-hippo
+  type: k8s-type.py
+  properties:
+    cluster: hippo
+    endpoint: $(ref.hippo.endpoint)
+- name: hippo-workloads
+  type: hippo.jinja
+  metadata:
+    dependsOn:
+    - hippo-v1
+    - hippo-v1-apps
+
+- name: cluster3
+  type: cluster.jinja
+  properties:
+    name: lion
+    location: us-central1
+    network: local-vpc
+    subnetwork: primary-local
+    vpc-native: true
+    pod-cidr: pods
+    service-cidr: services1
+    nodePools:
+    - name: default
+      initialNodeCount: 1
+      minNodeCount: 3
+      maxNodeCount: 9
+    - name: big-pods
+      initialNodeCount: 1
+      machineType: n1-standard-2
+- name: k8s-lion
+  type: k8s-type.py
+  properties:
+    cluster: lion
+    endpoint: $(ref.lion.endpoint)
+- name: lion-worlkloads
+  type: lion.jinja
+  properties:
+    cluster: lion
+  metadata:
+    dependsOn:
+    - lion-v1
+    - lion-v1-apps
+    - lion-v1beta1-extensions
+
+- name: cluster4
+  type: cluster.jinja
+  properties:
+    name: narwhal
+    location: us-central1-a
+    network: another-vpc
+    subnetwork: not-as-local
+    networkPolicy: true
+    vpc-native: true
+    pod-cidr: pods
+    service-cidr: services1
+    httpLB: true
+    nodePools:
+    - name: unicorn-of-the-sea
+- name: k8s-narwhal
+  type: k8s-type.py
+  properties:
+    cluster: narwhal
+    endpoint: $(ref.narwhal.endpoint)
+- name: narwhal-workloads
+  type: narwhal.jinja
+  metadata:
+    dependsOn:
+    - narwhal-v1
+    - narwhal-v1-apps
+
+- name: cluster5
+  type: cluster.jinja
+  properties:
+    name: mongoose
+    location: us-central1-a
+    network: another-vpc
+    subnetwork: not-as-local
+    vpc-native: true
+    pod-cidr: pods1
+    service-cidr: service2
+    private-cluster: true
+    enablePrivateEndpoint: true
+    master-cidr: 172.16.176.0/28
+    hosts:
+    - host-name: internal-network
+      host-cidr: 192.168.0.0/16
+    httpLB: true
+    nodePools:
+    - name: weird-mammal
+      initialNodeCount: 4
+      machineType: n1-highcpu-4
+      minNodeCount: 1
+      maxNodeCount: 4
+- name: k8s-mongoose
+  type: k8s-type.py
+  properties:
+    cluster: mongoose
+    endpoint: $(ref.mongoose.endpoint)
+- name: mongoose-workloads
+  type: mongoose.jinja
+  metadata:
+    dependsOn:
+    - mongoose-v1
+    - mongoose-v1-apps

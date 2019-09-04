@@ -1,0 +1,25 @@
+resources:
+- name: addPeering-1-2
+  action: gcp-types/compute-v1:compute.networks.addPeering
+  properties:
+    network: {{ properties["net1"] }}
+    name: peering-1-2
+    autoCreateRoutes: true
+    peerNetwork: $(ref.{{ properties["net2"] }}.selfLink)
+  metadata:
+    dependsOn:
+    - {{ properties["net1"] }}
+    runTimePolicy:
+    - CREATE
+- name: addPeering-2-1
+  action: gcp-types/compute-v1:compute.networks.addPeering
+  properties:
+    network: {{ properties["net2"] }}
+    name: peering-2-1
+    autoCreateRoutes: true
+    peerNetwork: $(ref.{{ properties["net1"] }}.selfLink)
+    metadata:
+      dependsOn:
+      - {{ properties["net2"] }}
+      runTimePolicy:
+      - CREATE
