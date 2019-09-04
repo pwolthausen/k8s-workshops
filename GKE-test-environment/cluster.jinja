@@ -12,11 +12,11 @@ resources:
       ipAllocationPolicy:
         useIpAliases: true
         {% if properties["pod-cidr"] %}
-        createSubnetworks: false
+        createSubnetwork: false
         clusterSecondaryRangeName: {{ properties["pod-cidr"] }}
         servicesSecondaryRangeName: {{ properties["service-cidr"] }}
         {% else %}
-        createSubnetworks: true
+        createSubnetwork: true
         {% endif %}
       {% endif %}
       {% if properties["networkPolicy"] %}

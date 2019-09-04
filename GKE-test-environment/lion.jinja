@@ -1,6 +1,9 @@
 resources:
-- name: namespace-bigjob
+- name: bigjob
   type: {{ env['project'] }}/{{ properties['cluster'] }}-v1:/api/v1/namespaces
+  metadata:
+    dependsOn:
+    - lion-v1
   properties:
     apiVersion: v1
     kind: Namespace
@@ -10,7 +13,7 @@ resources:
   type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
   metadata:
     dependsOn:
-    - namespace-bigjob
+    - bigjob
   properties:
     apiVersion: apps/v1
     kind: Deployment
@@ -36,6 +39,9 @@ resources:
                 cpu: 1500m 
 - name: deploy-job
   type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  metadata:
+    dependsOn:
+    - bigjob
   properties:
     apiVersion: apps/v1
     kind: Deployment
@@ -59,6 +65,9 @@ resources:
             image: busybox
 - name: working
   type: {{ env['project'] }}/{{ properties['cluster'] }}-v1:/api/v1/namespaces
+  metadata:
+    dependsOn:
+    - lion-v1
   properties:
     apiVersion: v1
     kind: Namespace

@@ -66,7 +66,7 @@ properties:
     default: projects/debian-cloud/global/images/family/debian-9
 
   diskSize:
-    type: int
+    type: integer
     description: size, in GB of the boot disk
     default: 10
 

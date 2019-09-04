@@ -10,8 +10,8 @@ imports:
 - path: peering.jinja
 
 resources:
-- name: firewall1
-  type: remove-default-vpc.jinja
+#- name: firewall1
+#  type: remove-default-vpc.jinja
 
 ##Create new VPC
 - name: local-vpc
@@ -35,7 +35,7 @@ resources:
         ipCidrRange: 172.16.2.0/23
       - rangeName: services3
         ipCidrRange: 172.16.32.0/20
-- name: allow-internal
+- name: allow-internal-local
   type: compute.v1.firewall
   properties:
     network: $(ref.local-vpc.selfLink)
@@ -69,7 +69,7 @@ resources:
         ipCidrRange: 172.16.144.0/20
       - rangeName: services4
         ipCidrRange: 172.16.160.0/20
-- name: allow-internal
+- name: allow-internal-another
   type: compute.v1.firewall
   properties:
     network: $(ref.another-vpc.selfLink)
@@ -84,7 +84,7 @@ resources:
 - name: bastion-ssh
   type: compute.v1.firewall
   properties:
-    network: $(ref.pw-network.selfLink)
+    network: $(ref.local-vpc.selfLink)
     priority: 1000
     direction: INGRESS
     sourceRanges: 
@@ -128,6 +128,9 @@ resources:
 
 - name: cluster1
   type: cluster.jinja
+  metadata:
+    dependsOn:
+    - local-vpc
   properties:
     name: standard-cluster-1
     location: us-central1-a
@@ -155,6 +158,9 @@ resources:
 
 - name: cluster3
   type: cluster.jinja
+  metadata:
+    dependsOn:
+    - local-vpc
   properties:
     name: hippo
     location: us-central1
@@ -164,6 +170,7 @@ resources:
     pod-cidr: pods1
     service-cidr: services2
     private-cluster: true
+    enablePrivateEndpoint: false
     hosts:
     - host-name: bastion
       host-cidr: $(ref.bastionip.address)/32
@@ -186,6 +193,9 @@ resources:
 
 - name: cluster4
   type: cluster.jinja
+  metadata:
+    dependsOn:
+    - local-vpc
   properties:
     name: lion
     location: us-central1
@@ -219,6 +229,9 @@ resources:
 
 - name: cluster5
   type: cluster.jinja
+  metadata:
+    dependsOn:
+    - another-vpc
   properties:
     name: narwhal
     location: us-central1-a
@@ -228,7 +241,7 @@ resources:
     vpc-native: true
     pod-cidr: pods
     service-cidr: services1
-    httpLB: disabled
+    httpLB: true
     nodePools:
     - name: unicorn-of-the-sea
 - name: k8s-narwhal
@@ -260,6 +273,9 @@ resources:
 
 - name: cluster7
   type: cluster.jinja
+  metadata:
+    dependsOn:
+    - another-vpc
   properties:
     name: mongoose
     location: us-central1-a
@@ -271,7 +287,10 @@ resources:
     private-cluster: true
     enablePrivateEndpoint: true
     master-cidr: 172.16.176.0/28
-    httpLB: disabled
+    hosts:
+    - host-name: internal-network
+      host-cidr: 192.168.0.0/16
+    httpLB: true
     nodePools:
     - name: weird-mammal
       initialNodeCount: 4

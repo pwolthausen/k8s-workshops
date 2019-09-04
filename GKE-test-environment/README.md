@@ -10,11 +10,11 @@ If you do not want to create a new project for this workshop, remove the first r
 
 ### 2. Enable the APIs
 
-Make sure the following APIs are enabled in the project. For new projects, you will need to enable them. If you are using an existing project, these may already be active.
-    - compute.googleapis.com
-    - container.googleapis.com
-    - deploymentmanager.googleapis.com
-    - logging.googleapis.com
+Make sure the following APIs are enabled in the project. For new projects, you will need to enable them. If you are using an existing project, these may already be active.  
+    - compute.googleapis.com  
+    - container.googleapis.com  
+    - deploymentmanager.googleapis.com  
+    - logging.googleapis.com  
 
 
 ### 3. Create the resources

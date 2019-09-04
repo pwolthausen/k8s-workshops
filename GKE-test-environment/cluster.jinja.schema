@@ -49,6 +49,7 @@ properties:
   enablePrivateEndpoint:
     type: boolean
     description: true to disable internet facing master endpoint
+    default: false
 
   hosts:
     type: array
@@ -83,8 +84,8 @@ properties:
     default: false
 
   httpLB:
-    type: boolean
-    description: determines if the GCE Ingress Controller will be used. true disables it 
+    type: boolnea
+    description: determines if the GCE Ingress Controller will be used. Set to "true" to disable
     default: false
 
   istio:

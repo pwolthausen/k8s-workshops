@@ -23,7 +23,7 @@ resources:
       {% endif %}
       {% if eth["natIP"] or eth["ptrName"] %}
       accessConfigs:
-        {% if eth["natIP"] %}
+      - {% if eth["natIP"] %}
         natIP: {{ eth["natIP"] }}
         {% endif %}
         {% if eth["ptr"] %}
