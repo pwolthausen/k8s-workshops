@@ -1,4 +1,4 @@
-imports:
+0imports:
 - path: instance.jinja
 - path: cluster.jinja
 - path: k8s-type.py
@@ -208,7 +208,6 @@ resources:
     vpc-native: true
     pod-cidr: pods
     service-cidr: services2
-    private-cluster: true
     httpLB: true
     nodePools:
     - name: weird-mammal

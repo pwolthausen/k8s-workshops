@@ -69,11 +69,11 @@ resources:
                 memory: 50Mi
             volumeMounts:
             - mountPath: /var/www/html
-              name: mountedVolume
+              name: mountedvolume
           volumes:
           - configMap:
               name: apache-index
-            name: mountedVolume
+            name: mountedvolume
 
 - name: deploy-generic
   type:  {{ env['project'] }}/mongoose-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments

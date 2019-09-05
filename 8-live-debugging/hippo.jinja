@@ -86,6 +86,7 @@ resources:
     spec:
       backend:
         serviceName: nginx
+        servicePort: 80
 
 - name: deploy-webserver
   type: {{ env['project'] }}/hippo-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
