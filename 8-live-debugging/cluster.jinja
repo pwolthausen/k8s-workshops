@@ -1,6 +1,10 @@
 resources:
 - name: {{ properties["name"] }}
   type: gcp-types/container-v1beta1:projects.locations.clusters
+  metadata:
+    dependsOn:
+    - primary-local
+    - not-as-local
   properties:
     parent: projects/{{ env["project"] }}/locations/{{ properties["location"] }}
     cluster:

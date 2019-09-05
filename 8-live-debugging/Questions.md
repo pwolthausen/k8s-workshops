@@ -1,18 +1,20 @@
 ## GKE specific
 
-1. Why did the `standard-cluster-1` cluster fail to be created? How can I prevent this from happening with a new cluster?
+0. Deploy a cluster using `cluster1.yaml` manifest. This will fail, can you explain why and how this can be avoided?
 
-2. My `hippo` cluster worked fine with 2 nodes, I need to add one but it won’t work, why?
+    gcloud deployment-manager deployments create cluster1 --config cluster1.yaml
 
-3. kubectl commands from my workstation to the `hippo` cluster are timing out, this works fine from the `bastion` VM I have setup. Why do the requests from workstations timeout?  
+1. My `hippo` cluster worked fine with 2 nodes, I need to add one but it won’t work, why?
 
-4. I want to manage my `mongoose` cluster from my `bastion` VM using the cluster's internal endpoint instead of the external one, why is this failing?.
+2. kubectl commands from my workstation to the `hippo` cluster are timing out, this works fine from the `bastion` VM I have setup. Why do the requests from workstations timeout?  
 
-5. I have enabled autoscaling in my lion cluster, but my `bigjob` deployment still has unschedulable pods, why isn’t autoscaling working?
+3. I want to manage my `mongoose` cluster from my `bastion` VM using the cluster's internal endpoint instead of the external one, why is this failing?.
 
-6. In my “narwhal” cluster, I can’t reach my internal database from my `api` which is located in another subnet on my shared VPon prem in the 192.168.128.0/17 block. I don't have this problem with my `fab-four` pods or my bastion host.
+4. I have enabled autoscaling in my lion cluster, but my `bigjob` deployment still has unschedulable pods, why isn’t autoscaling working?
 
-7. Autoscaling is enabled on the `mongoose` cluster. There are multiple nodes with under 50% resource usage, why won’t it scale down?
+5. In my “narwhal” cluster, I can’t reach my internal database from my `api` which is located in another subnet on my shared VPon prem in the 192.168.128.0/17 block. I don't have this problem with my `fab-four` pods or my bastion host.
+
+6. Autoscaling is enabled on the `mongoose` cluster. There are multiple nodes with under 50% resource usage, why won’t it scale down?
 
 ## General Kubernetes
 

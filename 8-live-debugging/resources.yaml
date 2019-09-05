@@ -6,6 +6,8 @@ imports:
 - path: lion.jinja
 - path: narwhal.jinja
 - path: mongoose.jinja
+- path: remove-default-vpc.jinja
+- path: peering.jinja
 
 resources:
 - name: default-vpc
@@ -102,19 +104,12 @@ resources:
 
 - name: addPeering
   type: peering.jinja
-  metadata:
-    dependsOn:
-    - primary-local
-    - not-as-local
   properties:
     net1: local-vpc
     net2: another-vpc
 
 - name: instance1
   type: instance.jinja
-  metadata:
-    dependsOn:
-    - addPeering
   properties:
     name: bastion
     region: us-central1
@@ -131,27 +126,11 @@ resources:
     - key: block-project-ssh-keys
       value: "true"
 
-- name: cluster1
-  type: cluster.jinja
-  metadata:
-    dependsOn:
-    - addPeering
-  properties:
-    name: standard-cluster-1
-    location: us-central1-a
-    network: local-vpc
-    subnetwork: primary-local
-    nodePools:
-    - name: default
-
 - name: cluster2
   type: cluster.jinja
-  metadata:
-    dependsOn:
-    - addPeering
   properties:
     name: hippo
-    location: us-central1
+    location: us-central1-f
     network: local-vpc
     subnetwork: primary-local
     vpc-native: true
@@ -164,8 +143,10 @@ resources:
       host-cidr: $(ref.bastionip.address)/32
     master-cidr: 172.16.48.0/28
     nodePools:
-    - name: default
-      initialNodeCount: 1
+    - name: chumbawomba
+      initialNodeCount: 2
+      minNodeCount: 2
+      maxNodeCount: 4
       machineType: n1-standard-2
 - name: k8s-hippo
   type: k8s-type.py
@@ -174,16 +155,9 @@ resources:
     endpoint: $(ref.hippo.endpoint)
 - name: hippo-workloads
   type: hippo.jinja
-  metadata:
-    dependsOn:
-    - hippo-v1
-    - hippo-v1-apps
 
 - name: cluster3
   type: cluster.jinja
-  metadata:
-    dependsOn:
-    - addPering
   properties:
     name: lion
     location: us-central1
@@ -193,7 +167,7 @@ resources:
     pod-cidr: pods
     service-cidr: services1
     nodePools:
-    - name: default
+    - name: simba
       initialNodeCount: 1
       minNodeCount: 3
       maxNodeCount: 9
@@ -207,19 +181,9 @@ resources:
     endpoint: $(ref.lion.endpoint)
 - name: lion-worlkloads
   type: lion.jinja
-  properties:
-    cluster: lion
-  metadata:
-    dependsOn:
-    - lion-v1
-    - lion-v1-apps
-    - lion-v1beta1-extensions
 
 - name: cluster4
   type: cluster.jinja
-  metadata:
-    dependsOn:
-    - addPeering
   properties:
     name: narwhal
     location: us-central1-a
@@ -239,24 +203,17 @@ resources:
     endpoint: $(ref.narwhal.endpoint)
 - name: narwhal-workloads
   type: narwhal.jinja
-  metadata:
-    dependsOn:
-    - narwhal-v1
-    - narwhal-v1-apps
 
 - name: cluster5
   type: cluster.jinja
-  metadata:
-    dependsOn:
-    - addPeering
   properties:
     name: mongoose
     location: us-central1-a
     network: another-vpc
     subnetwork: not-as-local
     vpc-native: true
-    pod-cidr: pods1
-    service-cidr: service2
+    pod-cidr: pods
+    service-cidr: services2
     private-cluster: true
     enablePrivateEndpoint: true
     master-cidr: 172.16.176.0/28
@@ -277,7 +234,3 @@ resources:
     endpoint: $(ref.mongoose.endpoint)
 - name: mongoose-workloads
   type: mongoose.jinja
-  metadata:
-    dependsOn:
-    - mongoose-v1
-    - mongoose-v1-apps

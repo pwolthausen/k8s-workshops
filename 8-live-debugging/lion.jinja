@@ -1,6 +1,6 @@
 resources:
 - name: bigjob
-  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1:/api/v1/namespaces
+  type: {{ env['project'] }}/lion-v1:/api/v1/namespaces
   metadata:
     dependsOn:
     - lion-v1
@@ -10,7 +10,7 @@ resources:
     metadata:
       name: bigjob
 - name: deploy-bigjob
-  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  type: {{ env['project'] }}/lion-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
   metadata:
     dependsOn:
     - bigjob
@@ -38,7 +38,7 @@ resources:
               requests:
                 cpu: 1500m 
 - name: deploy-job
-  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  type: {{ env['project'] }}/lion-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
   metadata:
     dependsOn:
     - bigjob
@@ -64,7 +64,7 @@ resources:
           - name: busybox
             image: busybox
 - name: working
-  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1:/api/v1/namespaces
+  type: {{ env['project'] }}/lion-v1:/api/v1/namespaces
   metadata:
     dependsOn:
     - lion-v1
@@ -74,7 +74,7 @@ resources:
     metadata:
       name:  working
 - name: deploy-working
-  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  type: {{ env['project'] }}/lion-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
   metadata:
     dependsOn:
     - working
@@ -107,7 +107,7 @@ resources:
                 path: /probe/ready
                 port: 80
 - name: deploy-working1
-  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
+  type: {{ env['project'] }}/lion-v1-apps:/apis/apps/v1/namespaces/{namespace}/deployments
   metadata:
     dependsOn:
     - working
@@ -143,7 +143,7 @@ resources:
                 path: /
                 port: 80
 - name: service-working
-  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1:/api/v1/namespaces/{namespace}/services
+  type: {{ env['project'] }}/lion-v1:/api/v1/namespaces/{namespace}/services
   metadata:
     dependsOn:
     - working
@@ -162,7 +162,7 @@ resources:
       - port: 8080
         targetPort: 80
 - name: ingress-working
-  type: {{ env['project'] }}/{{ properties['cluster'] }}-v1beta1-extensions:/apis/extensions/v1beta1/namespaces/{namespace}/ingresses
+  type: {{ env['project'] }}/lion-v1beta1-extensions:/apis/extensions/v1beta1/namespaces/{namespace}/ingresses
   metadata:
     dependsOn:
     - working

@@ -1,6 +1,10 @@
 resources:
 - name: {{ properties["name"] }}
   type: compute.v1.instance
+  metadata:
+    dependsOn:
+    - primary-local
+    - not-as-local
   properties:
     name: {{ properties["name"] }}
     {% if properties["tags"] %}

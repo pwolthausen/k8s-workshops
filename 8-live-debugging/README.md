@@ -5,8 +5,8 @@ This workshop assumes you have the Google Cloud SDK installed.
 
 ### 1. Create a new project
 
-Part of the deployment manaifest will delete your default VPC.
-If you do not want to create a new project for this workshop, remove the first resource (named `firewall1`) before deploying.
+Part of the deployment manaifest will delete your default VPC. Other steps will also create resources that can't be easily deleted using deployment manager, thus, for easy clean up, I highly recommend running this environment in a new project.
+If you do not want to create a new project for this workshop, remove the first resource (named `default-vpc`) before deploying.
 
 ### 2. Enable the APIs
 
@@ -28,16 +28,13 @@ Leveraging deployment manager, we will create the following:
 
 Create the deployement using:
 
-    gcloud deployment-manager deployments create gke-test-network --config network.yaml
+    gcloud deployment-manager deployments create gke-test --config resources.yaml
 
-Once this completes, create the clusters:
-
-    gcloud deployment-manager deployments create gke-test-clusters --config clusters.yaml
-
+This will take some time to complete
 
 ### 4. Scenarios
 
-Open the Questions.md file and go through the 17 questions. These questions will cover both GKE specific issues as well as broader k8s common issues.  
+Open the [Questions.md](https://github.com/Aahzymandius/k8s-workshops/blob/aahz-changes/8-live-debugging/Questions.md) file and go through the 17 questions. These questions will cover both GKE specific issues as well as broader k8s common issues.  
 
 As a reference, the Answers.md file includes the solutions to most of these scenarios
 
@@ -45,7 +42,6 @@ As a reference, the Answers.md file includes the solutions to most of these scen
 ### 5. Cleaning up
 
 If you made a new project, you can simply delete the project.  
-If you wish to keep the project but remove the clusters, use the following:
+If you wish to keep the project, due to resources such as new gcp types and the peerings, DM will not be able to automatically remove all created resources. Yyou will have to delete the deployment then manually remove any unwanted resources.
 
-    gcloud deployment-manager deployments delete gke-test-network
-    gcloud deployment-manager deployments delete gke-test-clusters
+    gcloud deployment-manager deployments delete gke-test --delete-policy abandon

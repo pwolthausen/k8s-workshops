@@ -1,0 +1,13 @@
+imports:
+- path: cluster.jinja
+
+resources:
+- name: cluster1
+  type: cluster.jinja
+  properties:
+    name: standard-cluster-1
+    location: us-central1-a
+    network: local-vpc
+    subnetwork: primary-local
+    nodePools:
+    - name: default
