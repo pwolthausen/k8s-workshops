@@ -5,9 +5,9 @@ The default pod range for a cluster is in 10.0.0.0/8 which is used if you do not
 
 2. The pod CIDR is /23. Each node is using the default range of /24 (notice the “110 pods per node”). This means there is only enough IP space to allow for 2 nodes. To avoid this, use a larger pod CIDR or allow fewer pods per node
 
-3. Master Authorised Networks is enabled. By default, this allows the CIDR of the subnet where your cluster is created and that is all. Notice that a single other IP has been added, this is not the IP of the bastion host, thus it will not work.
+3. Master Authorised Networks is enabled. By default, this allows the CIDR of the subnet where your cluster is created and that is all. Notice that there is only one external IP that has been added, this is the IP of my bastion VM in my project, not the workstation I am using in the office, thus it will not work.
 
-4. The Mongoose cluster is private with no external endpoint so kubectl commands must use the internal endpoint. The bastion host and the Mongoose cluster are in different networks; even if peering or a VPN is configured, I can’t reach the master IP from another network.  
+4. The bastion host and the Mongoose cluster are in different networks; even if peering or a VPN is configured, I can’t reach the master IP from another network.  
     NOTE: This is due to a current limiation with transient route sharing. This issue may be addressed in the future
 
 5. My “Bigjob” pod is asking for 1.5 vCPUs. The nodes in the default pool only have 1 vCPU so pods can’t fit there. The pool with bigger nodes does not have autoscaling. The autoscaler knows that even if it did scale up, the new nodes would not be big enough.

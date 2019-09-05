@@ -56,7 +56,7 @@ resources:
   type: compute.v1.subnetwork
   properties:
     network: $(ref.another-vpc.selfLink) 
-    ipCidrRange: 192.168.56.0/24
+    ipCidrRange: 192.168.1.0/24
     region: us-central1
     secondaryIpRanges:
       - rangeName: pods
@@ -136,12 +136,6 @@ resources:
     vpc-native: true
     pod-cidr: pods1
     service-cidr: services2
-    private-cluster: true
-    enablePrivateEndpoint: false
-    hosts:
-    - host-name: bastion
-      host-cidr: $(ref.bastionip.address)/32
-    master-cidr: 172.16.48.0/28
     nodePools:
     - name: chumbawomba
       initialNodeCount: 2
@@ -215,11 +209,6 @@ resources:
     pod-cidr: pods
     service-cidr: services2
     private-cluster: true
-    enablePrivateEndpoint: true
-    master-cidr: 172.16.176.0/28
-    hosts:
-    - host-name: internal-network
-      host-cidr: 192.168.0.0/16
     httpLB: true
     nodePools:
     - name: weird-mammal
@@ -234,3 +223,25 @@ resources:
     endpoint: $(ref.mongoose.endpoint)
 - name: mongoose-workloads
   type: mongoose.jinja
+
+- name: cluster6
+  type: cluster.jinja
+  properties:
+    name: unicorn
+    location: us-central1-c 
+    network: another-vpc
+    subnetwork: not-as-local
+    vpc-native: true
+    pod-cidr: pods
+    service-cidr: services3
+    private-cluster: true
+    enablePrivateEndpoint: false
+    hosts:
+    - host-name: bastion
+      host-cidr: $(ref.bastionip.address)/32
+    - host-name: vpc-internal
+      host-cidr: 192.168.0.0/18
+    master-cidr: 172.16.176.0/28
+    nodePools:
+    - name: charlie
+      initialNodeCount: 0
