@@ -18,7 +18,7 @@
 
 ## General Kubernetes
 
-1. In the `hippo` cluster, can you explain what the error message for `promsd` means? What is the cause? How can I fix this?
+1. In the `unicorn` cluster, can you explain what the error message for `promsd` means? What is the cause? How can I fix this?
 
 2. Why isn’t my `working` deployment in the lion cluster working? The pod says it’s running!
 
