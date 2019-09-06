@@ -1,4 +1,4 @@
-0imports:
+imports:
 - path: instance.jinja
 - path: cluster.jinja
 - path: k8s-type.py
