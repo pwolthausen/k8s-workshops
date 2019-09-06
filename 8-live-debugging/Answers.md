@@ -18,7 +18,7 @@ The default pod range for a cluster is in 10.0.0.0/8 which is used if you do not
 
 General k8s
 
-1. The pod can’t be created because the image can’t be pulled (ImagePullBackOff). This is because the cluster is private and the image is in a public repo (only accessible over the internet). Configure a NAT gateway or use gcr.io to store images
+1. The pod can’t be created because the image can’t be pulled (ImagePullBackOff). This is because the cluster is private and the image is in a public repo (only accessible over the internet). Configure a NAT gateway or use gcr.io to store images (Note that this image is currently not being mirrored by Google, this may change in the future. If the pod was running for you, this is why)
 
 2. We can see the pods are scheduled but not running. By viewing the pod events, we can see that the readiness probe is failing with 404, likely because it is misconfigured
 

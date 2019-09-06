@@ -241,6 +241,7 @@ resources:
     - host-name: vpc-internal
       host-cidr: 192.168.0.0/18
     master-cidr: 172.16.176.0/28
+    istio: false
     nodePools:
     - name: charlie
       initialNodeCount: 0
