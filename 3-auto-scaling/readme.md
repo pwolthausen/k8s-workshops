@@ -52,7 +52,7 @@ The scale down process, however, takes longer to detect. To scale down, we need 
 
 ### 2. Node Auto-Provisionning
 
-The node pool auto-scaler will increase the number of nodes available using the same node template as the pool. Whateveryou've selected as a machine type will continue being used. 
+The node pool auto-scaler will increase the number of nodes available using the same node template as the pool. Whatever you've selected as a machine type will continue being used. 
 In contrast, Node Auto-Provisioning (NAP) will add an entirely new node pool to the cluster, it will determine the correct machine type to use to ensure that the new nodes accomodate the workloads you are adding. This is especially useful when using Vertical Pod Auto-scaling (section 4). 
 
 Make sure to review the [GCP public docs for more details](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning) on NAP. We won't be covering all the different criteria that can trigger NAP to create new nodes, the document will provide you more details.  
