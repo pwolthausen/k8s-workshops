@@ -1,0 +1,12 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: scalable-workload-hpa
+  namespace: scaling
+spec:
+  maxReplicas: 20
+  minReplicas: 2
+  targetCPUUtilizationPercentage: 75
+  scaleTargetRef:
+    kind: Deployment
+    name: scalable-workload

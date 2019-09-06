@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: large-pods
+  namespace: scaling
+  labels:
+    app: nap
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: large
+  template:
+    metadata:
+      labels:
+        app: large
+    spec:
+      containers:
+      - name: big-container
+        image: wordpress
+        resources:
+          requests:
+            cpu: 2
+            memory: 5Gi
