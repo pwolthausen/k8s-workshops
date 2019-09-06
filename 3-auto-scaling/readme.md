@@ -47,7 +47,7 @@ During the process, you can also view the auto-scaler confiMap to see the status
 The scale up process should happen pretty quickly, once a pod is unschedulable, the auto-scaler should detect it and scale up a new node. 
 The scale down process, however, takes longer to detect. To scale down, we need to make sure the nodes are under utilized, so we'll scale down the deployment to 1. Describe the configMap periodically to watch the auto-scaler's logic.
 
-    kubectl scale deploy -n scaling scalable-workload --replicas 4
+    kubectl scale deploy -n scaling scalable-workload --replicas 10
 
 
 ### 2. Node Auto-Provisionning
