@@ -163,4 +163,8 @@ Apply the manifest for VPA:
 
     kubectl apply -f vpa.yaml
 
+The VPA needs time to collect data about the running pods and should eventually decide that the requests configured are too high. The VPA should update the Deployment which will trigger a rolling update of the pods. 
+The new pods with lower requests should then also cause the cluster to scale down since the previous requests artifically triggered the cluster to scale. 
+
+Note that VPA will recommend or set requests even if none were set previously. VPA may also modify the requests to a point where the pods will no longer fit on any current nodes, as such it is recommended to enable NAP
 
