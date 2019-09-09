@@ -47,12 +47,12 @@ During the process, you can also view the auto-scaler confiMap to see the status
 The scale up process should happen pretty quickly, once a pod is unschedulable, the auto-scaler should detect it and scale up a new node. 
 The scale down process, however, takes longer to detect. To scale down, we need to make sure the nodes are under utilized, so we'll scale down the deployment to 1. Describe the configMap periodically to watch the auto-scaler's logic.
 
-    kubectl scale deploy -n scaling scalable-workload --replicas 4
+    kubectl scale deploy -n scaling scalable-workload --replicas 10
 
 
 ### 2. Node Auto-Provisionning
 
-The node pool auto-scaler will increase the number of nodes available using the same node template as the pool. Whateveryou've selected as a machine type will continue being used. 
+The node pool auto-scaler will increase the number of nodes available using the same node template as the pool. Whatever you've selected as a machine type will continue being used. 
 In contrast, Node Auto-Provisioning (NAP) will add an entirely new node pool to the cluster, it will determine the correct machine type to use to ensure that the new nodes accomodate the workloads you are adding. This is especially useful when using Vertical Pod Auto-scaling (section 4). 
 
 Make sure to review the [GCP public docs for more details](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning) on NAP. We won't be covering all the different criteria that can trigger NAP to create new nodes, the document will provide you more details.  
@@ -130,4 +130,41 @@ As mentioned, you can also define HPA to work with custom metrics. As an example
 
 ### 4. Vertical Pod Auto-scaling
 
+Vertical Pod Auto-scaling is a GKE feature that helps with configuring the resource requests of your deployments. From the [Google help doc](https://cloud.google.com/kubernetes-engine/docs/concepts/verticalpodautoscaler):
+
+    Vertical pod autoscaling (VPA) frees you from having to think about what values to specify for a container's CPU and memory requests. The autoscaler can recommend values for CPU and memory requests, or it can automatically update values for CPU and memory requests.
+
+Before using VPA, the feature must be enabled for your cluster. If you are creating a new cluster or this, use the `--enable-vertical-pod-autoscaling` flag or select Vertical Pod Auto-scaling in the UI. FOr existing clusters, use: 
+
+    gcloud beta container clusters update [CLUSTER-NAME] --enable-vertical-pod-autoscaling
+
+Much like HPA, VPA is a resource created within the cluster that targets a specific object (such as a Deployment, DaemonSet, StatefulSet). The VPA will collect data on the running pods that are part of the controller and make recommendations for CPU and Memory requests based on pod performance. 
+The VPA resource will look somethig like this:
+
+<pre>
+apiVersion: autoscaling.k8s.io/v1beta2
+kind: VerticalPodAutoscaler
+metadata:
+  name: my-vpa
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       my-deployment ##This is the name of the deployment you want VPA to target
+  updatePolicy:
+    updateMode: "Off"
+</pre>
+
+- The `targetRef` section is used to define which resource you want VPA to target and marches a single resource.
+- `updateMode` determines whether VPA will update the resource requests automatically. Setting this value to `Auto` will allow VPA to automatically make changes whichi will trigger pods to be recreated. Setting this value to `Off` allows you to view recommendations without VPA taking any action.
+
+We have two over utilized deployemnts, so we'll apply VPA to both the `large-pods` and the `scalable-workload` deployments. 
+Apply the manifest for VPA:
+
+    kubectl apply -f vpa.yaml
+
+The VPA needs time to collect data about the running pods and should eventually decide that the requests configured are too high. The VPA should update the Deployment which will trigger a rolling update of the pods. 
+The new pods with lower requests should then also cause the cluster to scale down since the previous requests artifically triggered the cluster to scale. 
+
+Note that VPA will recommend or set requests even if none were set previously. VPA may also modify the requests to a point where the pods will no longer fit on any current nodes, as such it is recommended to enable NAP
 

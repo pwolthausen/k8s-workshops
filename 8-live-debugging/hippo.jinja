@@ -49,6 +49,9 @@ resources:
             image: nginx:alpine
             ports:
             - containerPort: 80
+            resources:
+              requests:
+                cpu: 150m
             readinessProbe:
               httpGet:
                 path: /
@@ -115,6 +118,9 @@ resources:
             image: nginx:latest
             ports:
             - containerPort: 80
+            resources:
+              requests:
+                cpu: 150m
 - name: service-webserver
   type: {{ env['project'] }}/hippo-v1:/api/v1/namespaces/{namespace}/services
   metadata:
