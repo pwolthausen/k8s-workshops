@@ -18,9 +18,9 @@
 
 1. In the `unicorn` cluster, create a deployment using the `wordpress:latest` container image. You can do this through the UI or from the `bastion` VM using this command:  
 
-    kubectl create deploy wordpress --image wordpress:latest  
+       kubectl create deploy wordpress --image wordpress:latest  
 
-Why won't the pods run?
+   Why won't the pods run?
 
 2. Why isn’t my `working` deployment in the lion cluster working? The pod says it’s running!
 
@@ -28,14 +28,12 @@ Why won't the pods run?
 
 4. The `fab-four` deployment in the narwhal cluster should have 4 pods, why are only 3 running?
 
-5. My `mounter` pod is stuck in pending, why?
+5. There is a service called `webserver`, I have tested the pod internally and I am confident that the pod is serving traffic properly. Why doesn’t the Load Balancer seem to work?
 
-6. There is a service called `webserver`, I have tested the pod internally and I am confident that the pod is serving traffic properly. Why doesn’t the Load Balancer seem to work?
+6. There is a service called `nginx` in the hippo cluster, I have tested the pod internally and I am confident that the pod is serving traffic properly. Why doesn’t the Load Balancer seem to work?
 
-7. There is a service called `nginx` in the hippo cluster, I have tested the pod internally and I am confident that the pod is serving traffic properly. Why doesn’t the Load Balancer seem to work?
+7. I created an ingress for my `nginx` workload since the service load balancer is not working. Why isn’t my ingress working?
 
-8. I created an ingress for my `nginx` workload since the service load balancer is not working. Why isn’t my ingress working?
+8. My `working` ingress is returning 502 errors. Why is this happening?  How can I debug this?
 
-9. My `working` ingress is returning 502 errors. Why is this happening?  How can I debug this?
-
-10. My `echoheader` workload has been exposed with an ingress, yet there is still no external IP, what am I doing wrong?
+9. My `echo-ing` workload has been exposed with an ingress, yet there is still no external IP, what am I doing wrong?
