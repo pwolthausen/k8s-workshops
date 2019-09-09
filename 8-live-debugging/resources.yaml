@@ -126,7 +126,7 @@ resources:
     - key: block-project-ssh-keys
       value: "true"
 
-- name: cluster2
+- name: cluster0
   type: cluster.jinja
   properties:
     name: hippo
@@ -141,7 +141,6 @@ resources:
       initialNodeCount: 2
       minNodeCount: 2
       maxNodeCount: 4
-      machineType: n1-standard-2
 - name: k8s-hippo
   type: k8s-type.py
   properties:
@@ -150,7 +149,7 @@ resources:
 - name: hippo-workloads
   type: hippo.jinja
 
-- name: cluster3
+- name: cluster1
   type: cluster.jinja
   properties:
     name: lion
@@ -176,7 +175,7 @@ resources:
 - name: lion-worlkloads
   type: lion.jinja
 
-- name: cluster4
+- name: cluster2
   type: cluster.jinja
   properties:
     name: narwhal
@@ -198,7 +197,7 @@ resources:
 - name: narwhal-workloads
   type: narwhal.jinja
 
-- name: cluster5
+- name: cluster3
   type: cluster.jinja
   properties:
     name: mongoose
@@ -223,7 +222,7 @@ resources:
 - name: mongoose-workloads
   type: mongoose.jinja
 
-- name: cluster6
+- name: cluster4
   type: cluster.jinja
   properties:
     name: unicorn
@@ -241,7 +240,6 @@ resources:
     - host-name: vpc-internal
       host-cidr: 192.168.0.0/18
     master-cidr: 172.16.176.0/28
-    istio: false
     nodePools:
-    - name: charlie
+    - name: magnificent-magical-beasts
       initialNodeCount: 0

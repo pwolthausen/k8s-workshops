@@ -19,18 +19,17 @@ Make sure the following APIs are enabled in the project. For new projects, you w
 
 ### 3. Create the resources
 
-Leveraging deployment manager, we will create the following:
-
-- 2 new VPCs peered together
-- 5 GKE clusters with 2-6 nodes each (make sure to have sufficient quota for this)
-- various workloads and resources in each of the clusters
-- a Bastion host (the VM uses osLogin, so you need to make sure you have sufficient permissions to connect). Note, connecting to the bastion is not required.
-
-Create the deployement using:
+Create the environment using the following command:
 
     gcloud deployment-manager deployments create gke-test --config resources.yaml
 
-This will take some time to complete
+The above command will create the deployment which will perform the following:
+
+- Remove the default VPC
+- Create 2 new VPCs peered together
+- Create 5 GKE clusters with 2-6 nodes each (make sure to have sufficient quota for this)
+- Create various workloads and resources in each of the clusters
+- Create a Bastion host (the VM uses osLogin, so you need to make sure you have sufficient permissions to connect). Note, connecting to the bastion is not required.
 
 ### 4. Scenarios
 

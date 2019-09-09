@@ -1,8 +1,6 @@
 ## GKE specific
 
-0. Deploy a cluster using `cluster1.yaml` manifest. This will fail, can you explain why and how this can be avoided?
-
-    gcloud deployment-manager deployments create cluster1 --config cluster1.yaml
+0. Try to create a standard non-vpc native cluster in either VPC. Does this fail, if so, why?
 
 1. My `hippo` cluster worked fine with 2 nodes, I need to add one but it won’t work, why?
 
@@ -12,13 +10,17 @@
 
 4. I have enabled autoscaling in my lion cluster, but my `bigjob` deployment still has unschedulable pods, why isn’t autoscaling working?
 
-5. In my `narwhal` cluster, I can’t reach my internal database from my `api` which is located in another subnet on my shared VPon prem in the 192.168.128.0/17 block. I don't have this problem with my `fab-four` pods or my bastion host.
+5. In my `narwhal` cluster, I can’t reach my internal database from my `api` which is located in another subnet on prem in the 192.168.128.0/17 block. I don't have this problem with my `fab-four` pods or my bastion host.
 
 6. Autoscaling is enabled on the `mongoose` cluster. There are multiple nodes with under 50% resource usage, why won’t it scale down?
 
 ## General Kubernetes
 
-1. In the `unicorn` cluster, can you explain what the error message for `promsd` means? What is the cause? How can I fix this?
+1. In the `unicorn` cluster, create a deployment using the `wordpress:latest` container image. You can do this through the UI or from the `bastion` VM using this command:  
+
+    kubectl create deploy wordpress --image wordpress:latest  
+
+Why won't the pods run?
 
 2. Why isn’t my `working` deployment in the lion cluster working? The pod says it’s running!
 
