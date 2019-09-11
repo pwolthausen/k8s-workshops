@@ -11,7 +11,7 @@ resources:
       name: {{ properties["name"] }}      
       network: {{ properties["network"] }}
       subnetwork: {{ properties["subnetwork"] }}
-      initialClusterVersion: {{ properties["version"] }}
+      initialClusterVersion: "1.13"
       {% if properties["vpc-native"] %}
       ipAllocationPolicy:
         useIpAliases: true

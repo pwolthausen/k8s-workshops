@@ -60,7 +60,7 @@ We will replace the `value` field with a `valueFrom` field. It should look somet
 ...
 valueFrom:  
   configMapKeyRef:  
-    name: api-variables  
+    name: db-variables  
     key: database
 </pre>
 
