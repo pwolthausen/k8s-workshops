@@ -242,4 +242,4 @@ resources:
     master-cidr: 172.16.176.0/28
     nodePools:
     - name: magnificent-magical-beasts
-      initialNodeCount: 0
+      initialNodeCount: 2
