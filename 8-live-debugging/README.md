@@ -36,11 +36,11 @@ The above command will create the deployment which will perform the following:
 
 #### **Make sure that all 4 clusters are created and ready before attempting to create the workloads.**
 
-Make the workloads.sh file executable. This is a simple bash script that connects to each cluster and applies the correlating yaml
+Make the workloads.sh file executable. This is a simple bash script that connects to each cluster and applies the correlating yaml  
 
     chmod 760 workloads.sh
 
-Run the executable
+Run the executable. You may see an error for the `unicorn` cluster, disregard this error.
     ./workloads.sh
 
 ### 4. Scenarios
@@ -53,6 +53,6 @@ As a reference, the Answers.md file includes the solutions to most of these scen
 ### 5. Cleaning up
 
 If you made a new project, you can simply delete the project.  
-If you wish to keep the project, due to resources such as new gcp types and the peerings, DM will not be able to automatically remove all created resources. Yyou will have to delete the deployment then manually remove any unwanted resources.
+If you wish to keep the project, due to resources such as new gcp types and the peerings, DM will not be able to automatically remove all created resources. You will have to delete the deployment then manually remove any unwanted resources.
 
     gcloud deployment-manager deployments delete gke-test --delete-policy abandon

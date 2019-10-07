@@ -1,7 +1,11 @@
 #! /bin/bash
 
-for cluster in $(gcloud container clusters list --format='table(name)'); 
+echo Enter project ID
+
+read project
+
+for cluster in $(gcloud container clusters list --format='table[no-heading](name)' --project $project); 
 do
-  gcloud container clusters $cluster get-credentials
+  gcloud container clusters get-credentials $cluster --project $project --zone us-central1-f
   kubectl apply -f $cluster.yaml
 done

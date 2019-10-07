@@ -143,7 +143,7 @@ resources:
   type: cluster.jinja
   properties:
     name: lion
-    location: us-central1
+    location: us-central1-f
     network: local-vpc
     subnetwork: primary-local
     vpc-native: true
@@ -151,18 +151,18 @@ resources:
     service-cidr: services1
     nodePools:
     - name: simba
-      initialNodeCount: 1
+      initialNodeCount: 3
       minNodeCount: 3
       maxNodeCount: 9
     - name: big-pods
-      initialNodeCount: 1
+      initialNodeCount: 3
       machineType: n1-standard-2
 
 - name: cluster2
   type: cluster.jinja
   properties:
     name: narwhal
-    location: us-central1-a
+    location: us-central1-f
     network: another-vpc
     subnetwork: not-as-local
     networkPolicy: true
@@ -177,7 +177,7 @@ resources:
   type: cluster.jinja
   properties:
     name: mongoose
-    location: us-central1-a
+    location: us-central1-f
     network: another-vpc
     subnetwork: not-as-local
     vpc-native: true
