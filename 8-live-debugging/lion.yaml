@@ -1,0 +1,156 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bigpods
+
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: working
+
+---
+
+apiVersion: apps/v1
+kind: Deployemnt
+metadata:
+  name: bigapp
+  namespace: bigpods
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: big
+  template:
+    metadata:
+      labels:
+        app: big
+    spec:
+      containers:
+      - name: big-workload
+        image: wordpress
+        resources:
+          requests:
+            cpu: 1500m
+
+---
+
+apiVersion: apps/v1
+kind: Deployemnt
+metadata:
+  name: job
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: job
+  template:
+    metadata:
+      labels:
+        app: job
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        args:
+        - /bin/sh
+        - -c
+        - echo "Process starting";
+        - >
+          i=0;
+          while [ $i -le 2 ];
+          do
+            echo "processing"
+            sleep 5;
+            i=$((i+1));
+          done;
+        - echo "Process complete"
+
+---
+
+apiVersion: apps/v1
+kind: Deployemnt
+metadata:
+  name: working
+  namespace: working
+  labels:
+    app: working
+    version: 1.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: working
+      version: 1.0
+  template:
+    metadata:
+      labels:
+        app: working
+        version: 1.0
+    spec:
+      containers:
+      - name: working
+        image: jazzdd/apine-flask-python3
+        ports:
+        - containerPort: 80
+        readinessprobe:
+          httpGet:
+            path: /probe/ready
+            port: 80
+---
+
+apiVersion: apps/v1
+kind: Deployemnt
+metadata:
+  name: working1
+  namespace: working
+  labels:
+    app: working
+    version: 1.1
+spec:
+  selector:
+    matchLabels:
+      app: working
+      version: 1.1
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: working
+        version: 1.1
+    spec:
+      containers:
+      - name: working
+        image: httpd
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: working
+  namespace: working
+spec:
+  type: NodePort
+  selector:
+    app: working
+  ports:
+  - port: 8080
+    targetPort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: working
+  name: working
+spec:
+  backend:
+    serviceName: working
+    servicePort: 8080

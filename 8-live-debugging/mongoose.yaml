@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mounter
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mount
+  namespace: mounter
+spec: 
+  replicas: 3
+  selector:
+    matchLabels:
+      mount: volume
+  template:
+    metadata:
+      labels:
+        mount: volume
+    spec:
+      containers:
+      - name: volume-required
+        image: httpd
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+        volumeMounts:
+        - mountPath: /var/www/html
+          name: mountedvolume
+      volumes:
+      - configMap:
+          name: apache-index
+        name: mountedvolume
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mountedvolume
+  namespace: mounter
+data:
+  index.html: "apache needs this to run"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generic-workload
+  label:
+    app: generic
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: generic
+  template:
+    metadata:
+      labels:
+        app: generic
+    spec:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 75
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - generic
+          topologyKey: kubernetes.io/hostname
+      containers: 
+      - name: generic-app
+        image: nginx:alpine
+        resources:
+          request:
+            cpu: 25m
+            memory: 25Mi
+
+---
+
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: restrictive-pdb
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: generic
