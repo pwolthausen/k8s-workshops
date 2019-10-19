@@ -18,8 +18,8 @@ resources:
     name: peering-2-1
     autoCreateRoutes: true
     peerNetwork: $(ref.{{ properties["net1"] }}.selfLink)
-    metadata:
-      dependsOn:
-      - {{ properties["net2"] }}
-      runTimePolicy:
-      - CREATE
+  metadata:
+    dependsOn:
+    - {{ properties["net2"] }}
+    runTimePolicy:
+    - CREATE

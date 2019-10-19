@@ -168,3 +168,8 @@ The new pods with lower requests should then also cause the cluster to scale dow
 
 Note that VPA will recommend or set requests even if none were set previously. VPA may also modify the requests to a point where the pods will no longer fit on any current nodes, as such it is recommended to enable NAP
 
+
+## Clean Up
+
+    kubectl delete ns scaling  
+
