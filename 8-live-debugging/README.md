@@ -21,27 +21,21 @@ Make sure the following APIs are enabled in the project. For new projects, you w
 
 #### The Clusters
 
-Create the environment using the following command:
+Make the workloads.sh file executable. This is a simple bash script that creates a deployment using deployment manager then connects to each cluster and applies the correlating yaml  
 
-    gcloud deployment-manager deployments create gke-test --config resources.yaml
+    chmod 760 setup.sh
 
-The above command will create the deployment which will perform the following:
+Run the executable. You may see an error for the `unicorn` cluster, disregard this error.
+
+    ./setup.sh
+
+The above script will create the deployment which will perform the following:
 
 - Remove the default VPC
 - Create 2 new VPCs peered together
 - Create 5 GKE clusters with 2-6 nodes each (make sure to have sufficient quota for this)
 - Create a Bastion host (the VM uses osLogin, so you need to make sure you have sufficient permissions to connect). Note, connecting to the bastion is not required.
 
-#### The workloads
-
-#### **Make sure that all 4 clusters are created and ready before attempting to create the workloads.**
-
-Make the workloads.sh file executable. This is a simple bash script that connects to each cluster and applies the correlating yaml  
-
-    chmod 760 workloads.sh
-
-Run the executable. You may see an error for the `unicorn` cluster, disregard this error.
-    ./workloads.sh
 
 ### 4. Scenarios
 
