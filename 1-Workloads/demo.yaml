@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo
+spec:
+  selector:
+    app: demo
+  ports:
+  - port: 80
+    targetPort:80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo
+spec:
+  replicas: 4
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  minReadySeconds: 15
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+        version: 1.0
+    spec:
+      containers:
+      - name: demo-container
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: pod-info
+          mountPath: /usr/share/nginx/html/
+          readOnly: false
+        - name: demo
+          mountPath: /usr/share/nginx/html/
+    volumes:
+    - name: pod-info
+      downwardAPI:
+        items:
+        - path: "whois"
+          fieldRef:
+            fieldPath: metadata.labels
+    - name: index
+      configMap:
+        name: demo
+        items:
+        - key: index
+          path: index.html
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo
+data:
+  index.html: |
+    <html>
+    <body style="background-color:$BCOLOR">
+    <h1 style="color:$LCOLOR>
+    Hi $NAME,
+    The variables you set should have changed the background color and the color of this text
+    </body>
+    </html>

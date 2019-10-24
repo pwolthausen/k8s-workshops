@@ -6,6 +6,11 @@
 4. [Explore StatefulSet](https://cloud.google.com/kubernetes-engine/docs/concepts/statefulset)
 5. Jobs Vs Deployments
 
+## Why use Deployments?
+
+Deployments are generally used in lieu of using un-managed pods or ReplicaSets. The Deployment will control ReplicaSets, which in turn control pods. Aside from the benefits provided by a ReplicaSet built in, Deployments also provide upgrade strategies when changes are made to the workload (such as rolling out new versions).
+ 
+
 ## Using a Deployment
 
 Using the basic deployment template (deployment.yaml), fill in the blank fields to deploy a basic database. To keep things simple, let's use the image for mysql from Docker Hub: ["mysql:5.7"](https://hub.docker.com/_/mysql).  
@@ -17,10 +22,7 @@ Changes in future steps can be applied easily in one of 2 ways:
 1. Edit the deployment.yaml file locally. Once changes are complete, run the above command again to update the k8s resource
 2. Edit the deployment resource directly through k8s using `kubectl edit deploy [deployment_name]`. Note that this uses vi to edit the resource directly.  
 
-You can also use the `kubeclt patch` command to change specific fields in the resource without having to open an editor.
-
-#### Note
-Whenever the deployment is modified, the update strategy defined will come into play. The readiness Probe is configured to wait 30 seconds before it starts to ensure the update strategy does not roll out too quickly. This should allow you time to watch the rollout strategy in action. 
+You can also use the `kubeclt patch` command to change specific fields in the resource without having to open an editor. 
 
 ## Setting Variables for the container
 
@@ -118,8 +120,9 @@ Open `job.yaml` and make the following changes to convert it to a job:
 1. Change `apiVersion` from v1 to batch/v1
 2. Change `kind` to Job
 3. Remove the `spec.replicas` field
-4. Add the `spec.completions` and `spec.parallelism` fields. These are integers and determine how many times the job should run and how many replicas can run at any time.
-5. OPTIONALY add the `spec.ttlSecondsAfterFinished`. Adding this field will keep a pod around after it has completed it's task, useful for debugging or reviewing container logs
+4. Remove the `spec.selector` field. This field will be generated automatically.
+5. Add the `spec.completions` and `spec.parallelism` fields. These are integers and determine how many times the job should run and how many replicas can run at any time.
+6. OPTIONALY add the `spec.ttlSecondsAfterFinished`. Adding this field will keep a pod around after it has completed it's task, useful for debugging or reviewing container logs
 
 Once you've made these changes, apply the new config and watch as the jobs run.
 If you need these jobs to run on a schedule, you can use the kind [CronJob](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/)
