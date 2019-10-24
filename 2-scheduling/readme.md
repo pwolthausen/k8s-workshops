@@ -207,7 +207,7 @@ Let's change the topologyKey now to zonal and see what happens.
 
 <pre>
 kubectl patch deploy webserver -n scheduling -p \
-'{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":{"topologyKey": "failure-domain.beta.kubernetes.io/zone"}}}}}}}'
+'{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":[{"topologyKey": "failure-domain.beta.kubernetes.io/zone"}]}}}}}}'
 </pre>
 
 If your cluster is in a single zone, you should only see a single pod due to the topologyKey. If the cluster spans multiple zones, you should have as many pods as there are zones.
