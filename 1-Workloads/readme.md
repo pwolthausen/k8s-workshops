@@ -77,17 +77,22 @@ Now, update the deployment env fields to use the secrets. This will be very simi
 
 ### 3. Persistent Volumes
 
-We used configMap and secrets to replace variables in the container. It is also possible to have entire files created from either a secret or a configMap. The important part to note is that whatever data we import from the configMap or the secret will be readOnly.
+We used configMap and secrets to replace variables in the container. It is also possible to have entire files created from either a secret or a configMap. The important part to note is that whatever data we import from the configMap or the secret will be readOnly.  
 Your container, however, may required an entire directory of preloaded data or it may need writable disk space. You could use the node's boot disk for this (using hostPath) though this may not be ideal. Instead, we can mount disks to the pod using [Persistent Volumes(PV) and persistent volume claims(PVC)](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 
 #### Note
 Some providers will use StorageClass to allow PVs to be provisioned dynamically when you create a PVC. We will get more in depth into storage in a later workshop.	
 
-Start by creating the volume using the provided pvc.yaml. You can create this using the same command you used to create the Deployment
-Next, edit the deployment to indicate the volume to use by adding the `spec.template.spec.volumes` field.
-Finally, mount the volume by adding the `spec.template.spec.containers.volumeMounts` field. Set the `mountPath` to `/var/lib/mysql` so we can use it for the database.
+Start by creating the volume using the provided pvc.yaml. You can create this using the same command you used to create the Deployment.  
+Next, edit the deployment to indicate the volume to use by adding the `spec.template.spec.volumes` field.  
+Finally, mount the volume by adding the `spec.template.spec.containers.volumeMounts` field.  
+Set the `mountPath` to `/var/lib/mysql` so we can use it for the database.  
 
-Once your pod is running, you can experience the behavior of a PVC by draining the node where the MySQL pod is scheduled. You'll notice the PVC will change nodes along with the pod and the data will be kept.
+Once your pod is running, you can verify that the PVC is properly being used by describing it:
+
+    kubectl describe pvc $(kubectl get pvc --no-headers=true -o custom-columns=:metadata.name)
+
+You can experience the behavior of a PVC by draining the node where the MySQL pod is scheduled. You'll notice the PVC will change nodes along with the pod and the data will be kept.
 
 ## StatefulSets
 
