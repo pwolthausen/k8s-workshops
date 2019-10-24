@@ -73,23 +73,28 @@ You can learn more about this field using `kubectl explain` or using the [API re
 Our container currently has the 2 passwords writen in plain text in the config file. This is obviously not a good practice as we'd rather keep these passwords secure. Using a configMap here wouldn't help much as the data will be stored in clear readable text. Instead, we'll use a secret.
 There are a number of ways to [generate the secret](https://kubernetes.io/docs/concepts/configuration/secret/#creating-your-own-secrets), for now, we'll create it from the command line; follow the steps to manually create a secret uing kubect from the kubernetes.io page.
 
-Once the secret has been created, you can view the secret using `kubectl describe secret [secret_name]. Note that instead of having the values in clear test, the secret just makes a reference to the source file. This will also be the case if you create the secret from a literal value, you should only see the number of bytes of the value rather than a clear text value.
+Once the secret has been created, you can view the secret using `kubectl describe secret [secret_name]`. Note that instead of having the values in clear text, the secret just makes a reference to the source file. This will also be the case if you create the secret from a literal value, you should only see the number of bytes of the value rather than a clear text value.
 
 Now, update the deployment env fields to use the secrets. This will be very similar to how we referenced configMaps. Use `kubectl explain` or view the k8s API reference docs to find the correct values to change.
 
 ### 3. Persistent Volumes
 
-We used configMap and secrets to replace variables in the container. It is also possible to have entire files created from either a secret or a configMap. The important part to note is that whatever data we import from the configMap or the secret will be readOnly.
+We used configMap and secrets to replace variables in the container. It is also possible to have entire files created from either a secret or a configMap. The important part to note is that whatever data we import from the configMap or the secret will be readOnly.  
 Your container, however, may required an entire directory of preloaded data or it may need writable disk space. You could use the node's boot disk for this (using hostPath) though this may not be ideal. Instead, we can mount disks to the pod using [Persistent Volumes(PV) and persistent volume claims(PVC)](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 
 #### Note
 Some providers will use StorageClass to allow PVs to be provisioned dynamically when you create a PVC. We will get more in depth into storage in a later workshop.	
 
-Start by creating the volume using the provided pvc.yaml. You can create this using the same command you used to create the Deployment
-Next, edit the deployment to indicate the volume to use by adding the `spec.template.spec.volumes` field.
-Finally, mount the volume by adding the `spec.template.spec.containers.volumeMounts` field. Set the `mountPath` to `/var/lib/mysql` so we can use it for the database.
+Start by creating the volume using the provided pvc.yaml. You can create this using the same command you used to create the Deployment.  
+Next, edit the deployment to indicate the volume to use by adding the `spec.template.spec.volumes` field.  
+Finally, mount the volume by adding the `spec.template.spec.containers.volumeMounts` field.  
+Set the `mountPath` to `/var/lib/mysql` so we can use it for the database.  
 
-Once your pod is running, you can experience the behavior of a PVC by draining the node where the MySQL pod is scheduled. You'll notice the PVC will change nodes along with the pod and the data will be kept.
+Once your pod is running, you can verify that the PVC is properly being used by describing it:
+
+    kubectl describe pvc $(kubectl get pvc --no-headers=true -o custom-columns=:metadata.name)
+
+You can experience the behavior of a PVC by draining the node where the MySQL pod is scheduled. You'll notice the PVC will change nodes along with the pod and the data will be kept.
 
 ## StatefulSets
 
@@ -100,9 +105,9 @@ Next, we'll highlight the fields specific to StatefulSets that provide new funct
 
 1. `spec.podManagementPolicy`: this defines how pods are created and managed within the set, try different values and watch how the controller manages the pods as they are deleted and/or recreated.
 
-2. `spec.serviceName`: this field requires that the service already exist and provides hsotnames for the pods which the cluster DNS can resolve.
+2. `spec.serviceName`: this field requires that the service already exist and provides hostnames for the pods which the cluster DNS can resolve.
 
-3. `spec.volumeClaimTemplates`: Creates a template for PVCs, each new replica will have it's own dynamically provisioned PVC created and attached. the PVCs follow a similar naming convention to the pods. This makes scaling up and down easier since we no longe have the issue of a single PVC assigned in the pod template getting re-used (a problem we see in deployments). Note that this field replaces the `spec.temaplte.spec.volumes` field found in deployments
+3. `spec.volumeClaimTemplates`: Creates a template for PVCs, each new replica will have it's own dynamically provisioned PVC created and attached. the PVCs follow a similar naming convention to the pods. This makes scaling up and down easier since we no longer have the issue of a single PVC assigned in the pod template getting re-used (a problem we see in deployments). Note that this field replaces the `spec.template.spec.volumes` field found in deployments
 
 Try adding these fields to the statefulset and watch how they are implemented.
 [Here is an example](https://kubernetes.io/docs/tasks/run-application/run-replicated-stateful-application/) use case of a StatefulSet in action to create a MySQL master and replicas.
