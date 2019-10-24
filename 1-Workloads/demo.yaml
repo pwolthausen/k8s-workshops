@@ -67,3 +67,31 @@ data:
     The variables you set should have changed the background color and the color of this text
     </body>
     </html>
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: watcher
+spec:
+  replicas: 1
+  serviceName: watcher
+  selector:
+    matchLabels:
+      demo: watcher
+  template:
+    metadata:
+      demo: watcher
+    spec:
+      containers:
+      - name: watcher
+        image: ewoutp/docker-nginx-curl
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: watcher
+spec:
+  selector:
+    demo: watcher
+  ports:
+  - port: 80
