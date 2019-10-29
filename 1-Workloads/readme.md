@@ -8,21 +8,47 @@
 
 ## Why use Deployments?
 
-Deployments are generally used in lieu of using un-managed pods or ReplicaSets. The Deployment will control ReplicaSets, which in turn control pods. Aside from the benefits provided by a ReplicaSet built in, Deployments also provide upgrade strategies when changes are made to the workload (such as rolling out new versions).
+Deployments are generally used in lieu of using un-managed pods or ReplicaSets. The Deployment will control ReplicaSets, which in turn control pods. Aside from the benefits provided by a ReplicaSet built in, Deployments also provide upgrade strategies when changes are made to the workload (such as rolling out new versions). 
+
+To demonstrate some features of a Deployment, use the `demo.yaml` file to create a few resources.
+
+>    kubectl apply -f demo.yaml
+
+The Deployment in question is the `demo` deployment (`kubectl get deploy` to list created deployments).
+Looking at the deployment yaml, notice the `spec.strategy` field. This defines how the deployment will roll out new pods when a change is made to the config. There are two fields to highlight here:
+
+- `spec.strategy.rollingUpdate.maxSuge`: Sets the number of additional pods (above the number defined in the `replicas` field) that can be created during an update.
+
+- `spec.strategy.rollingupdate.maxUnavailable`: Sets the maximum number of pods that can be unavailable during the update. 
+
+In the current example, there are 4 replicas with a max surge of 1 and max unavailable of 1. This means that during an update, the deployment can go up to 5 total pods and can go down to 3 total available pods (ready). 
+As the strategy mentions, this is a rolling update. This means that new pods are added based on the defined values. New pods must become ready before old pods are removed.  
+In the current example, the deployment will terminate 1 of the current pods (maxUnavailable 1) and create 2 new pods (1 to replace the old terminated pod, and 1 surge pod). As soon as soon as one of the new pods is ready, the next old pod is removed.
+
+We can trigger an update on the `demo` deployment and watch the the rolling update behavior.
+
+>    kubectl edit deploy demo
+
+Change the label `version: "1.0"` to `version: "1.1"` and save changes.  
+Now watch the deployment roll out
+
+>    watch kubectl get po -l app=demo
+
+NOTE: The current example uses set values for maxSurge and maxUnavailable. These values can also be set as a %, this will be a % of the total replicas. Using percentages may be more useful when using very large number of replicas or if the number of replicas will change frequently (such as when using HPA).
  
 
-## Using a Deployment
+## Creating a Deployment
 
-Using the basic deployment template (deployment.yaml), fill in the blank fields to deploy a basic database. To keep things simple, let's use the image for mysql from Docker Hub: ["mysql:5.7"](https://hub.docker.com/_/mysql).  
+Using the basic deployment template (deployment.yaml), fill in the blank fields to deploy a basic database. To keep things simple, let's use the image for apache from Docker hub: [httpd](https://hub.docker.com/_/httpd).  
 Once the yaml is ready, save your changes and create the deployment using:
 
     kubectl apply -f deployment.yaml
 
 Changes in future steps can be applied easily in one of 2 ways:
 1. Edit the deployment.yaml file locally. Once changes are complete, run the above command again to update the k8s resource
-2. Edit the deployment resource directly through k8s using `kubectl edit deploy [deployment_name]`. Note that this uses vi to edit the resource directly.  
+2. Edit the deployment resource directly through k8s using `kubectl edit deploy [deployment_name]`. Note that this uses vi to edit the resource config stored in the clusters etcd.  
 
-You can also use the `kubeclt patch` command to change specific fields in the resource without having to open an editor. 
+
 
 ## Setting Variables for the container
 
