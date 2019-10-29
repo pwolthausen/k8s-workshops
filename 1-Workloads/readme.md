@@ -70,6 +70,8 @@ containers:
     value:
 </pre>
 
+ue `kubectl port-forward deploy/[deployment_name] 8090:80` then use `curl localhost:8090` or use a browser to same path.
+
 ## Adding volumes
 
 ### 1. ConfigMap
