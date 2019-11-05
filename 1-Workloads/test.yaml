@@ -1,27 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:
+  name: test
 spec:
   replicas: 1
   selector:
     matchLabels:
-      
+      test: db
   strategy:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 1
-    type: RollingUpdate
   template:
     metadata:
       labels:
-
+        test: db
     spec:
       containers:
-      - name: 
-        image: 
+      - name: sqldb
+        env:
+        - name: MYSQL_USER
+          value: pattypatpat
+        - name: MYSQL_PASSWORD
+          value: patpatpat
+        image: mariadb:latest
         ports:
-        - containerPort:
+        - containerPort: 3306
         readinessProbe:
           exec:
             # Check if we can execute basic query.

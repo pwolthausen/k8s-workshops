@@ -1,10 +1,11 @@
 # Workloads
 
-1. How to deploy your application using a Deployment
-2. Configure the container using Environment Variables
-3. Add volumes
-4. [Explore StatefulSet](https://cloud.google.com/kubernetes-engine/docs/concepts/statefulset)
-5. Jobs Vs Deployments
+1. Using a Deployment
+2. Writing a Deployment
+3. Configure the container using Environment Variables
+4. Add volumes
+5. [Explore StatefulSet](https://cloud.google.com/kubernetes-engine/docs/concepts/statefulset)
+6. Jobs Vs Deployments
 
 ## Why use Deployments?
 
@@ -35,19 +36,18 @@ Now watch the deployment roll out
 >    watch kubectl get po -l app=demo
 
 NOTE: The current example uses set values for maxSurge and maxUnavailable. These values can also be set as a %, this will be a % of the total replicas. Using percentages may be more useful when using very large number of replicas or if the number of replicas will change frequently (such as when using HPA).
- 
+
 
 ## Creating a Deployment
 
-Using the basic deployment template (deployment.yaml), fill in the blank fields to deploy a basic database. To keep things simple, let's use the image for apache from Docker hub: [httpd](https://hub.docker.com/_/httpd).  
+Using the basic deployment template (deployment.yaml), fill in the blank fields to deploy a basic database. To keep things simple, let's use the image for mariadb from Docker Hub: ["mariadb:latest"](https://hub.docker.com/_/mariadb).  
 Once the yaml is ready, save your changes and create the deployment using:
 
-    kubectl apply -f deployment.yaml
+>    kubectl apply -f deployment.yaml
 
 Changes in future steps can be applied easily in one of 2 ways:
 1. Edit the deployment.yaml file locally. Once changes are complete, run the above command again to update the k8s resource
 2. Edit the deployment resource directly through k8s using `kubectl edit deploy [deployment_name]`. Note that this uses vi to edit the resource config stored in the clusters etcd.  
-
 
 
 ## Setting Variables for the container
@@ -70,7 +70,7 @@ containers:
     value:
 </pre>
 
-ue `kubectl port-forward deploy/[deployment_name] 8090:80` then use `curl localhost:8090` or use a browser to same path.
+use `kubectl port-forward deploy/[deployment_name] 8090:80` then use `curl localhost:8090` or use a browser to same path.
 
 ## Adding volumes
 
@@ -79,7 +79,7 @@ ue `kubectl port-forward deploy/[deployment_name] 8090:80` then use `curl localh
 We might want to use a standard deployment to create multiple database pods that have different variables. Instead of manually updating the deployment each time we want to make a change. Instead, we will [create a ConfigMap](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/) that will contain the MYSQL_DATABASE and MYSQL_USER data.
 To keep things simple, let's create the ConfigMap using [literal values](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#create-configmaps-from-literal-values). Run the following command:
 
-    kubectl create configmap db-variables --from-literal=database=[database_name] --from-literal=db-user=[username]
+>    kubectl create configmap db-variables --from-literal=database=[database_name] --from-literal=db-user=[username]
 
 Take a look at the resource you just created using `kubectl describe cm db-variables`
 
@@ -105,6 +105,8 @@ Once the secret has been created, you can view the secret using `kubectl describ
 
 Now, update the deployment env fields to use the secrets. This will be very similar to how we referenced configMaps. Use `kubectl explain` or view the k8s API reference docs to find the correct values to change.
 
+[Here is an example of using secrets in the real world](https://cloud.google.com/kubernetes-engine/docs/tutorials/authenticating-to-cloud-platform).
+
 ### 3. Persistent Volumes
 
 We used configMap and secrets to replace variables in the container. It is also possible to have entire files created from either a secret or a configMap. The important part to note is that whatever data we import from the configMap or the secret will be readOnly.  
@@ -120,7 +122,7 @@ Set the `mountPath` to `/var/lib/mysql` so we can use it for the database.
 
 Once your pod is running, you can verify that the PVC is properly being used by describing it:
 
-    kubectl describe pvc $(kubectl get pvc --no-headers=true -o custom-columns=:metadata.name)
+>    kubectl describe pvc $(kubectl get pvc --no-headers=true -o custom-columns=:metadata.name)
 
 You can experience the behavior of a PVC by draining the node where the MySQL pod is scheduled. You'll notice the PVC will change nodes along with the pod and the data will be kept.
 

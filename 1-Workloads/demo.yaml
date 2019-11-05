@@ -8,7 +8,6 @@ spec:
     rollingUpdate:
       maxUnavailable: 1
       maxSurge: 1
-  minReadySeconds: 15
   selector:
     matchLabels:
       app: demo
@@ -23,29 +22,12 @@ spec:
         image: nginx:latest
         ports:
         - containerPort: 80
-        volumeMounts:
-        - name: index
-          mountPath: /usr/share/nginx/html/
-      volumes:
-      - name: index
-        configMap:
-          name: demo
-          items:
-          - key: index.html
-            path: index.html
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: demo
-data:
-  index.html: |
-    <html>
-    <body style="background-color:$BCOLOR">
-    <h1 style="color:$LCOLOR">
-    Hi $NAME,
-    The variables you set should have changed the background color and the color of this text
-    </h1>
-    <h2>Set environment variables BCOLOR, LCOLOR, and NAME to change this page.</h2>
-    </body>
-    </html>
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
