@@ -227,12 +227,11 @@ Now let's scale up the deployment.
 You should see each of your pods on a different node. If you have less than 5 nodes, not all the pods will be scheduled which would trigger auto-scaling if you have it enabled.
 If you have more than 5 or more nodes, all your pods should be scheduled on a different node. This is similar to a daemonset only it does not force a 1:1 ration between nodes and pods, you'll get as many pods as you asked for.
 
-Let's change the topologyKey now to zonal and see what happens.
+Let's change the topologyKey now to zonal and see what happens. Edit the deployment using:
 
-<pre>
-kubectl patch deploy webserver -n scheduling -p \
-'{"spec":{"template":{"spec":{"affinty":{"podAntiAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":{"topologyKey": "failure-domain.beta.kubernetes.io/zone"}}}}}}}'
-</pre>
+>    kubectl edit deploy webserver -n scheduling
+
+The change the topologyKey to `failure-domain.beta.kubernetes.io/zone`. Once you save the change, your deployment will roll out the new version
 
 If your cluster is in a single zone, you should only see a single pod due to the topologyKey. If the cluster spans multiple zones, you should have as many pods as there are zones.
 

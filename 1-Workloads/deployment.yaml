@@ -26,7 +26,11 @@ spec:
           exec:
             # Check if we can execute basic query.
             command: ["mysql", "-h", "127.0.0.1", "-e", "SELECT 1"]
+<<<<<<< HEAD
           initialDelaySeconds: 10
+=======
+          initialDelaySeconds: 30
+>>>>>>> master
         env:
         - name: MYSQL_ALLOW_EMPTY_PASSWORD
           value: "1"
