@@ -32,29 +32,40 @@ Apply a default resource request and limit value for the `scheduling` namespace
 Enforce memory and CPU constraints in the `scheduling` namespace to ensure that no pod requests more than 500mb and 250m.
 Now that there are constraints and default values set, clear all the pods from the namespace so that the rules get applied to your pods
 
-    kubectl delete po --all -n scheduling
+>    kubectl delete po --all -n scheduling
 
 Setting limits works in basically the same way as setting requests. Note that resource limits do not affect pod scheduling, it is used to ensure your containers do not consume too much CPU or memory and is good practice to use.
 
 
 ## Taints and Tolerations
 
-Taints and tolerations always work together. Taints apply to nodes and tolerations are configured in your pod spec.
+Taints and tolerations always work together. Taints apply to nodes and tolerations are configured in your pod spec. 
 To get a better understanding of how this works, we'll start by creating new nodes (new node pool in GKE) and taint the nodes. 
 NOTE If you are using GKE, you can taint the entire node pool during node pool creation
-You can apply a taint to a node manually using this command:
+You can apply a taint to a node manually using this command: 
 
-    kubectl taint nodes [node_name] [key]=[value]:[effect]
+>    kubectl taint nodes [node_name] [key]=[value]:[effect] 
 
 The defined key and value can be anything you want to use, just make sure to keep note of it. The effect will normally be `NoSchedule`, make sure to review the `PreferredNoSchedule` and the `Execute` effects as well.
 
-You can view the taints on your nodes by describing the nodes themselves using `kubectl describe no [node name]`.  
-If done correctly, you should notice no pods are being scheduled on your nodes with the exception of certain daemonset pods ([DaemonSets include certain tolerations by default](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/#taints-and-tolerations)).  
-To view the pods and which nodes they are on, use `kubectl get po -n scheduling -o wide`. You can also describe the nodes you've tainted to see which pods have been scheduled there.
+You can view the taints on your nodes by describing the nodes themselves using:
 
-Next, we want to allow certain pods to have the ability to ignore the taint and schedule on these tainted nodes.
+>    kubectl describe no [node name]  
+
+Note that taints apply during scheduling, which means that the pods that have already been scheduled will not be affected by the taint. Use the following to force the pods to be rescheduled:
+
+>    kubectl delete po --all --all-namespaces
+  
+If done correctly, you should notice no pods are being scheduled on your nodes with the exception of certain daemonset pods ([DaemonSets include certain tolerations by default](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/#taints-and-tolerations)).  
+To view the pods and which nodes they are on, use:
+
+>    kubectl get po -n scheduling -o wide  
+
+You can also describe the nodes you've tainted to see which pods have been scheduled there. You should notice that the node is preactically empty.  
+
+Next, we want to allow certain pods to have the ability to ignore the taint and schedule on these tainted nodes.  
 The `special` deployment needs to have the ability to schedule anywhere, including the tainted nodes. Edit the deployment and add a toleration to it. 
-Note that the tolration must match exactly the taint you previously assigned to the node.
+Note that the tolration must match the taint you previously assigned to the node exactly.
 
 To add a toleration to the pods, edit the deployment and add the field `spec.template.spec.tolerations`. For more information on the required fields for a toleration, use `kubectl explain deploy.spec.template.spec.tolerations` or check the k8s API reference doc.
 
@@ -69,12 +80,25 @@ Pods will not necessarily be scheduled on the tainted nodes, this step just allo
 Taints prevent unwanted pods to schedule on specific nodes, this is good if certain nodes have limited or more costly resources and you don't want to waste the node's resources.
 Alternatively, we can use Node Selector to ensure that your pod is scheduled on a specific node or group of nodes.
 
-Node Selector relies on node labels. Nodes have some labels built in by default, you can view these using `kubectl describe no [node_name] | grep Labels -A 15`.
-You can also manually add specific labels to a node; GKE allows you to assign node labels for an entire node pool, otherwise, you can assign a label to a node manually using `kubectl label no [node_name] [key]=[value]`.  
-Node Selector will work with either built-in labels or custom labels. Please update the nodes you previously tainted with a common label (you choose the key=value, ensure that it is consistent).
+First, we'll update the `special` deployment to use Node Selector matching the labels we assigned to the nodes.
+Edit the deployment and add the `spec.template.spec.nodeSelector` field using the label `workshop: scheduling`.
 
-Next, we'll update the `special` deployment to use Node Selector matching the labels we assigned to the nodes.
-Edit the deployment and add the `spec.template.spec.nodeSelector` field.
+The edit will trigger a rolling update, view the progress using: 
+
+>    kubectl get po -n scheduling -o wide  
+
+You should notice that the new `special` pods are not being scheduled. This is because the label we added for the Node Selector does not match any current labels on any nodes.  
+
+Node Selector relies on node labels. Nodes have some labels built in by default, you can view these using: 
+
+>     kubectl describe no [node_name] | grep Labels -A 15  
+
+You can also manually add specific labels to a node; GKE allows you to assign node labels for an entire node pool, otherwise, you can assign a label to a node manually using:
+
+>     kubectl label no [node_name] [key]=[value]  
+  
+Node Selector will work with either built-in labels or custom labels. 
+Update the nodes you previously tainted with a common label (use `workshop=scheduling`).
 
 Once completed, you should see that all of the new pods are now scheduled on the appropriate nodes. If you have any unschedulable pods, review the nodeSelector and node lables you set and make sure they match.
 
@@ -161,15 +185,15 @@ Let's try to highlight the impact by tweaking our deployments.
 
 1. Scale down the webserver deployment
 
-       kubectl scale deploy webserver --replicas 1 -n scheduling
+>    kubectl scale deploy webserver --replicas 1 -n scheduling
 
 2. Note, affinity only applies during scheduling, so let's force the pods to reschedule
 
-       kubectl delete po --all -n scheduling
+>    kubectl delete po --all -n scheduling
 
 3. Now, once the pods are scheduled, we should see the `pressure` pods grouping as much as possible with the `webserver` pods
 
-       kubectl get po -n scheduling -o wide
+>    kubectl get po -n scheduling -o wide
 
 #### Anti-Affinity
 
@@ -198,7 +222,7 @@ We also used `requiredDuringSchedulingIgnoredDuringExecution` which means the ru
 Edit the `webserver` deployment and add the above affinity block to it.
 Now let's scale up the deployment. 
 
-    kubectl scale deploy -n scheduling webserver --replicas 5
+>    kubectl scale deploy -n scheduling webserver --replicas 5
 
 You should see each of your pods on a different node. If you have less than 5 nodes, not all the pods will be scheduled which would trigger auto-scaling if you have it enabled.
 If you have more than 5 or more nodes, all your pods should be scheduled on a different node. This is similar to a daemonset only it does not force a 1:1 ration between nodes and pods, you'll get as many pods as you asked for.
@@ -214,4 +238,4 @@ If your cluster is in a single zone, you should only see a single pod due to the
 
 ## Clean up
 
-    kubectl delete ns scheduling
+>    kubectl delete ns scheduling
