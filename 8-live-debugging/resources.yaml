@@ -1,13 +1,9 @@
 imports:
 - path: instance.jinja
 - path: cluster.jinja
-- path: remove-default-vpc.jinja
 - path: peering.jinja
 
 resources:
-- name: default-vpc
-  type: remove-default-vpc.jinja
-
 ##Create new VPC
 - name: local-vpc
   type: compute.v1.network
