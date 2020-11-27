@@ -16,6 +16,9 @@ Make sure the following APIs are enabled in the project. For new projects, you w
     - deploymentmanager.googleapis.com  
     - logging.googleapis.com  
 
+Use the following command to ensure the APIs are enabled
+
+    gcloud services enable compute.googleapis.com container.googleapis.com deploymentmanager.googleapis.com logging.googleapis.com
 
 ### 3. Create the resources
 
