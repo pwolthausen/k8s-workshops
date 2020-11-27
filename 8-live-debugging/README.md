@@ -34,7 +34,6 @@ Run the executable. You may see an error for the `unicorn` cluster, disregard th
 
 The above script will create the deployment which will perform the following:
 
-- Remove the default VPC
 - Create 2 new VPCs peered together
 - Create 5 GKE clusters with 2-6 nodes each (make sure to have sufficient quota for this)
 - Create a Bastion host (the VM uses osLogin, so you need to make sure you have sufficient permissions to connect). Note, connecting to the bastion is not required.
