@@ -136,6 +136,8 @@ Whether it is Pod or Node affinity, the affinity configuration will be almost id
 
 The first value to define for affinity is whether the rules are a strict pass/fail or a suggestion, the two options are:
 
+| Type | Description |
+|------|-------------|
 | `requiredDuringSchedulingIgnoredDuringExecution:` | This value is a strict pass/fail evaluation. If no nodes meet the requirements defined in the affinity, the pods won't be scheduled at all. |
 | `preferredDuringSchedulingIgnoredDuringExecution:` | This is more of a suggestion for the scheduler, a preference. When using this option, you will include a weight to your affinity definition. Each time a node evaluation meets the values you set, the defined weight is added to the node for the schedulers final calculations. Even though a node may meet all the desired requirements, this does not mean your pods will definitely be scheduled here, it just means it is more likely. The higher the weight value, the more likely. |
 
