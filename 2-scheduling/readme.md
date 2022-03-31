@@ -16,12 +16,12 @@ This will create a number of pods, services and other resources required to get 
 
 ## Resource requests
 
-K8s leverages resource requests for many different aspects, including scheduling, auto-scaling and pod preemption. It is best practice to have these configured for all your pods([see best practices video](https://www.youtube.com/watch?v=xjpHggHKm78)). 
+K8s leverages resource requests for many different aspects, including scheduling, auto-scaling and pod preemption. It is best practice to have these configured for all your pods([see best practices video](https://www.youtube.com/watch?v=xjpHggHKm78)).
 Deciding on which value to set for the request depends entirely on the container being deployed. See [this](https://opensource.com/article/18/12/optimizing-kubernetes-resource-allocation-production) blog about determining resource requests and limits for your containers.
 it is also worth noting that the resource requests are defined at the container level, not the pod level. If you have multiple containers in a pod, each can (and should) have their resources defined. The pod's total resource requests will be used for scheduling.
 
 1. Given the deployment `webserver`, determine appropriate resource requests.
-Once you've established what your requested resources should be, edit the deployment and add the `spec.template.spec.containers[].resources.requests` field. 
+Once you've established what your requested resources should be, edit the deployment and add the `spec.template.spec.containers[].resources.requests` field.
 
 As k8s cluster admin, it is good practice to [enforce resource requests per namespace](https://kubernetes.io/docs/concepts/policy/limit-range/) in case users forget to set them.
 
@@ -39,14 +39,19 @@ Setting limits works in basically the same way as setting requests. Note that re
 
 ## Taints and Tolerations
 
-Taints and tolerations always work together. Taints apply to nodes and tolerations are configured in your pod spec. 
-To get a better understanding of how this works, we'll start by creating new nodes (new node pool in GKE) and taint the nodes. 
-NOTE If you are using GKE, you can taint the entire node pool during node pool creation
-You can apply a taint to a node manually using this command: 
+Taints and tolerations always work together.
+Taints apply to nodes and tolerations are configured in your pod spec.  
 
->    kubectl taint nodes [node_name] [key]=[value]:[effect] 
+### Taints
 
-The defined key and value can be anything you want to use, just make sure to keep note of it. The effect will normally be `NoSchedule`, make sure to review the `PreferredNoSchedule` and the `Execute` effects as well.
+To get a better understanding of how this works, we'll start by creating new nodes (new node pool in GKE) and taint the nodes.  
+**Note:** If you are using GKE, you can taint the entire node pool during node pool creation.  
+You can apply a taint to a node manually using this command:
+
+>    kubectl taint nodes [node_name] [key]=[value]:[effect]
+
+The defined key and value can be anything you want to use, just make sure to keep note of it. The effect will normally be `NoSchedule`.  
+Make sure to review the documentation to learn more about the `PreferredNoSchedule` and the `Execute` effects as well.
 
 You can view the taints on your nodes by describing the nodes themselves using:
 
@@ -55,7 +60,7 @@ You can view the taints on your nodes by describing the nodes themselves using:
 Note that taints apply during scheduling, which means that the pods that have already been scheduled will not be affected by the taint. Use the following to force the pods to be rescheduled:
 
 >    kubectl delete po --all --all-namespaces
-  
+
 If done correctly, you should notice no pods are being scheduled on your nodes with the exception of certain daemonset pods ([DaemonSets include certain tolerations by default](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/#taints-and-tolerations)).  
 To view the pods and which nodes they are on, use:
 
@@ -63,8 +68,10 @@ To view the pods and which nodes they are on, use:
 
 You can also describe the nodes you've tainted to see which pods have been scheduled there. You should notice that the node is preactically empty.  
 
+### Tolerations
+
 Next, we want to allow certain pods to have the ability to ignore the taint and schedule on these tainted nodes.  
-The `special` deployment needs to have the ability to schedule anywhere, including the tainted nodes. Edit the deployment and add a toleration to it. 
+The `special` deployment needs to have the ability to schedule anywhere, including the tainted nodes. Edit the deployment and add a toleration to it.
 Note that the tolration must match the taint you previously assigned to the node exactly.
 
 To add a toleration to the pods, edit the deployment and add the field `spec.template.spec.tolerations`. For more information on the required fields for a toleration, use `kubectl explain deploy.spec.template.spec.tolerations` or check the k8s API reference doc.
@@ -72,38 +79,41 @@ To add a toleration to the pods, edit the deployment and add the field `spec.tem
 The deployment will perform a rolling update, creating new pods in the process which can now be scheduled on the tainted nodes.
 
 #### Note
-Pods will not necessarily be scheduled on the tainted nodes, this step just allows them to be. If no pods were added to the tainted nodes, scale up the deployment (`kubectl scale deploy special -n scheduling replicas=[desired number of pods]`) until pods appear on the tainted node
+Pods will not necessarily be scheduled on the tainted nodes, this step just **allows them to be**. If no pods were added to the tainted nodes, scale up the deployment (`kubectl scale deploy special -n scheduling replicas=[desired number of pods]`) until pods appear on the tainted node
 
 
 ## Node Selector
 
-Taints prevent unwanted pods to schedule on specific nodes, this is good if certain nodes have limited or more costly resources and you don't want to waste the node's resources.
+Taints prevent unwanted pods from scheduling on specific nodes, this is good if certain nodes have limited or more costly resources and you don't want to waste the node's resources.  
 Alternatively, we can use Node Selector to ensure that your pod is scheduled on a specific node or group of nodes.
+
+Node selector uses node labels match workloads to those nodes. The node selector field in a pod tells the scheduler which nodes to look for when the pod is being scheduled. The scheduler will **only** schedule the pod on a node that has labels that match the ones specified in the node selector field.  
+
 
 First, we'll update the `special` deployment to use Node Selector matching the labels we assigned to the nodes.
 Edit the deployment and add the `spec.template.spec.nodeSelector` field using the label `workshop: scheduling`.
 
-The edit will trigger a rolling update, view the progress using: 
+The edit will trigger a rolling update, view the progress using:
 
 >    kubectl get po -n scheduling -o wide  
 
 You should notice that the new `special` pods are not being scheduled. This is because the label we added for the Node Selector does not match any current labels on any nodes.  
 
-Node Selector relies on node labels. Nodes have some labels built in by default, you can view these using: 
+Node Selector relies on node labels. Nodes have some labels built in by default, you can view these using:
 
 >     kubectl describe no [node_name] | grep Labels -A 15  
 
 You can also manually add specific labels to a node; GKE allows you to assign node labels for an entire node pool, otherwise, you can assign a label to a node manually using:
 
 >     kubectl label no [node_name] [key]=[value]  
-  
-Node Selector will work with either built-in labels or custom labels. 
+
+Node Selector will work with either built-in labels or custom labels.
 Update the nodes you previously tainted with a common label (use `workshop=scheduling`).
 
-Once completed, you should see that all of the new pods are now scheduled on the appropriate nodes. If you have any unschedulable pods, review the nodeSelector and node lables you set and make sure they match.
+Once completed, you should see that all of the new pods are now scheduled on the appropriate nodes. If you have any unschedulable pods, review the nodeSelector and node labels you set and make sure they match.
 
 #### Note
-Node Selector will evaluate each node and will select amoung the nodes that evaluate to TRUE. Because of this, Node Selector does not provide any kind of flexibility. This is where Node Affinity comes in which is addressed in the next section.
+Node Selector will evaluate each node and will select amongst the nodes that evaluate to TRUE. Because of this, Node Selector does not provide any kind of flexibility. This is where Node Affinity comes in which is addressed in the next section.
 
 
 ## Affinity
@@ -118,7 +128,7 @@ Like node selector, this evaluates each node against the affinity values set bas
 Similar to Node affinity. This will decide which node to schedule the pod to by evaluating the labels of each pod that is already scheduled on the node. This feature is used when you have pods that work best when they share a host but you don't want to predefine which nodes will be used or if two workloads need to share a common resource (like a persistent disk)
 
 #### 3. Pod Anti-affinity
-This also evaluates nodes based on the pod labels of pods already present on the node. Unlike the previous two affinities, nodes that meet the requirements will be less likely to be used or completely ignored, based on the affinity values. This is useful to ensure that certain pods are not scheduled together such as ensuring an even workload spread or ensuring that two resource intensive pods do not share a common node.
+This also evaluates nodes based on the pod labels of pods already present on the node. Unlike the previous two affinities, nodes that meet the requirements will be less likely to be used or completely ignored, based on the affinity values. This is useful to ensure that certain pods are not scheduled together such as ensuring an even workload spread or ensuring that two resource intensive pods do not share a common node.  
 
 
 
@@ -126,12 +136,12 @@ Whether it is Pod or Node affinity, the affinity configuration will be almost id
 
 The first value to define for affinity is whether the rules are a strict pass/fail or a suggestion, the two options are:
 
-- `requiredDuringSchedulingIgnoredDuringExecution:` This value is a strict pass/fail evalaution. If no nodes meet the requirements defined in the affinity, the pods won't be scheduled at al.
-- `preferredDuringSchedulingIgnoredDuringExecution:` This is more of a suggestion for the scheduler, a preference. When using this option, you will include a weight to your affinity definition. Each time a node evaluation meets the values you set, the defined weight is added to the node for the schedulers final calculations. Even though a node may meet all the desired requirements, this does not mean your pods will definitely be scheduled here, it just means it is more likely. The higher the weight value, the more likely.
+| `requiredDuringSchedulingIgnoredDuringExecution:` | This value is a strict pass/fail evaluation. If no nodes meet the requirements defined in the affinity, the pods won't be scheduled at all. |
+| `preferredDuringSchedulingIgnoredDuringExecution:` | This is more of a suggestion for the scheduler, a preference. When using this option, you will include a weight to your affinity definition. Each time a node evaluation meets the values you set, the defined weight is added to the node for the schedulers final calculations. Even though a node may meet all the desired requirements, this does not mean your pods will definitely be scheduled here, it just means it is more likely. The higher the weight value, the more likely. |
 
 If you choose the `preferredDuringSchedulingIgnoredDuringExecution`, your next step is to define a weight to the config. The weight must be an integer. The higher the value, the more importance the evaluation will be.
 
-The rest of the affinity spec will be the same for any of the above choices. 
+The rest of the affinity spec will be the same for any of the above choices.
 You will define matching expressions or labelSelector to define the labels you want to evaluate against.
 
 Pod Affinity and anti-affinity have two additional fields that node affinity does not:
@@ -164,7 +174,7 @@ Edit the `pressure` deployment and add the `spec.template.spec.affinity` block t
               labelSelector:
                 matchExpressions:
                 - key: app
-                  values: 
+                  values:
                   - webserver
                   operator: In
               topologyKey: kubernetes.io/hostname
@@ -174,13 +184,13 @@ Let's review the above:
 
 1. `preferredDuringSchedulingIgnoredDuringExecution` means that this is a preference, not a hard requirement
 2. We have to define the `weight` field with an integer, the higher the value, the more these matches are worth when the scheduler makes its decisions
-3. The `matchExpressions` works the same as with services and other label matching but with a good deal of flexibility. 
+3. The `matchExpressions` works the same as with services and other label matching but with a good deal of flexibility.
 - There can be multiple entries of labels to match against, each new expression is ANDed
 - You can define a single key, but allow for multiple different values
 - the operator field allows you to define the logic being used, instead of matching certain values to the key, you can create an exclusion list of values
 4. The `topologyKey` is set to hostname so each node is evaluated individually
 
-Depending on the size of your nodes and your cluster, this update may not have any direct visible impact. 
+Depending on the size of your nodes and your cluster, this update may not have any direct visible impact.
 Let's try to highlight the impact by tweaking our deployments.
 
 1. Scale down the webserver deployment
@@ -210,7 +220,7 @@ The Anti-affinity blok will look very similar to the previous affinity block, th
           requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
               matchExpressions:
-              - key: app 
+              - key: app
                 operator: In
                 values:
                 - webserver
@@ -220,7 +230,7 @@ The Anti-affinity blok will look very similar to the previous affinity block, th
 Notice this time we used `podAntiAffinity` instead of `podAffinity`.
 We also used `requiredDuringSchedulingIgnoredDuringExecution` which means the rule must be followed. If no node matches these requirements, the pod will not be scheduled.
 Edit the `webserver` deployment and add the above affinity block to it.
-Now let's scale up the deployment. 
+Now let's scale up the deployment.
 
 >    kubectl scale deploy -n scheduling webserver --replicas 5
 
