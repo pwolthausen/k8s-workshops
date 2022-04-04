@@ -1,15 +1,37 @@
 # Workloads
 
-1. Using a Deployment
-2. Writing a Deployment
-3. Configure the container using Environment Variables
-4. Add volumes
-5. [Explore StatefulSet](https://cloud.google.com/kubernetes-engine/docs/concepts/statefulset)
-6. Jobs Vs Deployments
+1. [Pods](https://kubernetes.io/docs/concepts/workloads/pods/)
+2. ReplicaSets
+3. Using a Deployment
+4. Writing a Deployment
+5. Configure the container using Environment Variables
+6. Add volumes
+7. [Explore StatefulSet](https://cloud.google.com/kubernetes-engine/docs/concepts/statefulset)
+8. Jobs Vs Deployments
 
-## Why use Deployments?
+## Intro
 
-Deployments are generally used in lieu of using un-managed pods or ReplicaSets. The Deployment will control ReplicaSets, which in turn control pods. Aside from the benefits provided by a ReplicaSet built in, Deployments also provide upgrade strategies when changes are made to the workload (such as rolling out new versions). 
+Kubernetes is a container orchestration tool, as such, you will be using it to deploy and manage workloads which run in containers. Knowing how to deploy and configure your workloads is the first step in adopting kubernetes.
+
+### Pods
+
+A pod is the smallest deployable  unit of computing that you can create and manage in kubernetes. It is important to remember this, a k8s cluster does not manage containers, it manages pods.
+
+Generally speaking, a single pod will contain a single container along with everything that container needs to run. A single pod can contain multiple containers if needed, though.
+
+### ReplicaSets
+
+A replicaSet is a resource used to tell the cluster how many replicas of a pod are needed. The controller will regularly check how many pods are currently running (current state) against how many have been requested (desired state) and schedule or remove pods to ensure you end up with the correct number of pods running.
+
+A replicaSet can be scaled up or down with an easy command:
+
+> kubectl scale rs <replicaset_name> --replicas x
+
+## Deployments
+
+### Why use Deployments?
+
+Deployments are generally used in lieu of using un-managed pods or ReplicaSets. The Deployment will control ReplicaSets, which in turn control pods. Aside from the benefits provided by a ReplicaSet built in, Deployments also provide upgrade strategies when changes are made to the workload (such as rolling out new versions).
 
 To demonstrate some features of a Deployment, use the `demo.yaml` file to create a few resources.
 
@@ -20,9 +42,9 @@ Looking at the deployment yaml, notice the `spec.strategy` field. This defines h
 
 - `spec.strategy.rollingUpdate.maxSuge`: Sets the number of additional pods (above the number defined in the `replicas` field) that can be created during an update.
 
-- `spec.strategy.rollingupdate.maxUnavailable`: Sets the maximum number of pods that can be unavailable during the update. 
+- `spec.strategy.rollingupdate.maxUnavailable`: Sets the maximum number of pods that can be unavailable during the update.
 
-In the current example, there are 4 replicas with a max surge of 1 and max unavailable of 1. This means that during an update, the deployment can go up to 5 total pods and can go down to 3 total available pods (ready). 
+In the current example, there are 4 replicas with a max surge of 1 and max unavailable of 1. This means that during an update, the deployment can go up to 5 total pods and can go down to 3 total available pods (ready).
 As the strategy mentions, this is a rolling update. This means that new pods are added based on the defined values. New pods must become ready before old pods are removed.  
 In the current example, the deployment will terminate 1 of the current pods (maxUnavailable 1) and create 2 new pods (1 to replace the old terminated pod, and 1 surge pod). As soon as soon as one of the new pods is ready, the next old pod is removed.
 
@@ -35,10 +57,10 @@ Now watch the deployment roll out
 
 >    watch kubectl get po -l app=demo
 
-NOTE: The current example uses set values for maxSurge and maxUnavailable. These values can also be set as a %, this will be a % of the total replicas. Using percentages may be more useful when using very large number of replicas or if the number of replicas will change frequently (such as when using HPA).
+*NOTE:* The current example uses set values for maxSurge and maxUnavailable. These values can also be set as a %, this will be a % of the total replicas. Using percentages may be more useful when using very large number of replicas or if the number of replicas will change frequently (such as when using HPA).
 
 
-## Creating a Deployment
+### Creating a Deployment
 
 Using the basic deployment template (deployment.yaml), fill in the blank fields to deploy a basic database. To keep things simple, let's use the image for mariadb from Docker Hub: ["mariadb:latest"](https://hub.docker.com/_/mariadb).  
 Once the yaml is ready, save your changes and create the deployment using:
@@ -47,7 +69,7 @@ Once the yaml is ready, save your changes and create the deployment using:
 
 Changes in future steps can be applied easily in one of 2 ways:
 1. Edit the deployment.yaml file locally. Once changes are complete, run the above command again to update the k8s resource
-2. Edit the deployment resource directly through k8s using `kubectl edit deploy [deployment_name]`. Note that this uses vi to edit the resource config stored in the clusters etcd.  
+2. Edit the deployment resource directly through k8s using `kubectl edit deploy [deployment_name]`. Note that this uses vi to edit the resource config stored in the clusters etcd and not all fields can be changed this way.  
 
 
 ## Setting Variables for the container
@@ -113,7 +135,7 @@ We used configMap and secrets to replace variables in the container. It is also 
 Your container, however, may required an entire directory of preloaded data or it may need writable disk space. You could use the node's boot disk for this (using hostPath) though this may not be ideal. Instead, we can mount disks to the pod using [Persistent Volumes(PV) and persistent volume claims(PVC)](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 
 #### Note
-Some providers will use StorageClass to allow PVs to be provisioned dynamically when you create a PVC. We will get more in depth into storage in a later workshop.	
+Some providers will use StorageClass to allow PVs to be provisioned dynamically when you create a PVC. We will get more in depth into storage in a later workshop.
 
 Start by creating the volume using the provided pvc.yaml. You can create this using the same command you used to create the Deployment.  
 Next, edit the deployment to indicate the volume to use by adding the `spec.template.spec.volumes` field.  
