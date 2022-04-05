@@ -19,7 +19,7 @@ A pod is the smallest deployable  unit of computing that you can create and mana
 
 Generally speaking, a single pod will contain a single container along with everything that container needs to run. A single pod can contain multiple containers if needed, though. The pod will also contain a NIC and any volumes the containers will require.  
 
-![Pod Architecture](pod-arch.jpg)
+![Pod Architecture](pod-arch.png)
 
 ### ReplicaSets
 
