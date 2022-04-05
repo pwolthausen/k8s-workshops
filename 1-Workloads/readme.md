@@ -22,11 +22,14 @@ Generally speaking, a single pod will contain a single container along with ever
 <p align="center">
   <img src="pod-arch.png" />
 </p>
-<!-- ![Pod Architecture](pod-arch.png) -->
 
 ### ReplicaSets
 
 A replicaSet is a resource used to tell the cluster how many replicas of a pod are needed. The controller will regularly check how many pods are currently running (current state) against how many have been requested (desired state) and schedule or remove pods to ensure you end up with the correct number of pods running.
+
+<p align="center">
+  <img src="replicaset.png" />
+</p>
 
 A replicaSet can be scaled up or down with an easy command:
 
