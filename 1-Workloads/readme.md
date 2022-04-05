@@ -1,7 +1,7 @@
 # Workloads
 
 1. [Pods](https://kubernetes.io/docs/concepts/workloads/pods/)
-2. ReplicaSets
+2. [ReplicaSets](https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/)
 3. Using a Deployment
 4. Writing a Deployment
 5. Configure the container using Environment Variables
