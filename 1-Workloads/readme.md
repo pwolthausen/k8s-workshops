@@ -17,7 +17,9 @@ Kubernetes is a container orchestration tool, as such, you will be using it to d
 
 A pod is the smallest deployable  unit of computing that you can create and manage in kubernetes. It is important to remember this, a k8s cluster does not manage containers, it manages pods.
 
-Generally speaking, a single pod will contain a single container along with everything that container needs to run. A single pod can contain multiple containers if needed, though.
+Generally speaking, a single pod will contain a single container along with everything that container needs to run. A single pod can contain multiple containers if needed, though. The pod will also contain a NIC and any volumes the containers will require.  
+
+![Pod Architecture](pod-arch.jpg)
 
 ### ReplicaSets
 
