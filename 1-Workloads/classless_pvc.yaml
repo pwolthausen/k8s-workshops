@@ -1,0 +1,33 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  accessModes: 
+  - ReadWriteOnce
+  capacity:
+    storageSize: 10Gi
+  storageClassName: local-storage
+  local:
+    path: /opt
+  claimRef:
+    name: mysql
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeName: mysql-pv
+  resources:
+    requests:
+      storage: 5Gi

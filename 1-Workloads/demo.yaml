@@ -15,7 +15,7 @@ spec:
     metadata:
       labels:
         app: demo
-        version: v1
+        version: "1.0"
     spec:
       containers:
       - name: demo-container
