@@ -19,5 +19,3 @@ NOTE: I did not create this content, I am simply sharing.
 - [Kubernetes Secrets and configmaps](https://www.youtube.com/watch?v=N41ZwsORs_g ) (length: 7m22s)
 - [Kubernetes draining a node and maintenance](https://www.youtube.com/watch?v=OPg0MRnltOU ) (length: 3m11s)
 - [Scheduling Pods](https://www.youtube.com/watch?v=Qcgf-PrXo9g) (length: 19m09s)
-
-And [here is a great blog](https://matthewpalmer.net/kubernetes-app-developer/articles/kubernetes-ports-targetport-nodeport-service.html) that explains what `port`, `nodePort`, and `targetPort` are, what they do, and the differences.

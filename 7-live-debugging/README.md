@@ -41,7 +41,7 @@ The above script will create the deployment which will perform the following:
 
 ### 4. Scenarios
 
-Open the [Questions.md](https://github.com/Aahzymandius/k8s-workshops/blob/aahz-changes/8-live-debugging/Questions.md) file and go through the 17 questions. These questions will cover both GKE specific issues as well as broader k8s common issues.  
+Open the [Questions.md](https://github.com/pwolthausen/k8s-workshops/blob/aahz-changes/8-live-debugging/Questions.md) file and go through the 17 questions. These questions will cover both GKE specific issues as well as broader k8s common issues.  
 
 As a reference, the Answers.md file includes the solutions to most of these scenarios
 

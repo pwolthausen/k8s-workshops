@@ -16,7 +16,7 @@ There are 4 [types of services in kubernetes](https://kubernetes.io/docs/concept
 Aside form ExternalName, each of the other 3 build on top of each other. At the base is the clusterIP.
 A virtual IP is selected from the cluster's range of service IPs, this IP remains statis as long as the service exists and will persist through node changes and version upgrades.
 A rule is created within the cluster that states any packet with the destination IP that matches the service IP will be treated by the service and forwarded to one of the serving pods.
-How this is accomplished will depend on the [service proxy mode](https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies) 
+How this is accomplished will depend on the [service proxy mode](https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies)
 A big limitation with CLusterIP is that the virtual IP can only be reached from within the cluster.
 
 #### NodePort
@@ -34,7 +34,9 @@ The LoadBalancer service still includes the ClusterIP and a nodePort, even if ne
 
 ExternalName works essentially as a CNAME record. No proxying is done.
 
-For some hands on with exposing services, [here is a good repo](https://github.com/DanyLan/GKE-EXPOSE-SERVICES) that goes through each serive type and demonstrates how to access them.
+For some hands on with exposing services, [here is a good repo](https://github.com/DanyLan/GKE-EXPOSE-SERVICES) that goes through each serive type and demonstrates how to access them.  
+
+And [here is a great blog](https://matthewpalmer.net/kubernetes-app-developer/articles/kubernetes-ports-targetport-nodeport-service.html) that explains what `port`, `nodePort`, and `targetPort` are, what they do, and the differences.
 
 ## 2. How services expose pods
 
@@ -43,12 +45,12 @@ What remains constant is how services select which pods to expose. The two featu
 
 #### Label selector
 
-The service `spec.selector` will contain a mapping of labels. Any pod within the same namespace that matches the same labels will receive traffic. 
+The service `spec.selector` will contain a mapping of labels. Any pod within the same namespace that matches the same labels will receive traffic.
 To demonstrate this, we'll deploy a couple of deployments using some similar and some different labels, do so using the `deploy.yaml` included here.
 
     kubectl apply -f deploy.yaml  
 
-Three deployments are created, 2 in one namespace and a third in another, all of which share a label. 
+Three deployments are created, 2 in one namespace and a third in another, all of which share a label.
 We'll start with a basic service:
 
 <pre>
@@ -68,7 +70,7 @@ For the purpose of demonstrating how the labels work, we'll apply the `services.
 
     kubectl apply -f services.yaml
 
-This will create 4 services. Let's first look at the service `web-app`. Notice that this service uses the label `app: web` which is also used by all 3 deployments. 
+This will create 4 services. Let's first look at the service `web-app`. Notice that this service uses the label `app: web` which is also used by all 3 deployments.
 The service will create an `endpoint` resource which reflects the service virtual IP and group together the pod IPs of the pods with the same label.  
 
     kubectl describe ep web-app
@@ -86,6 +88,9 @@ Note this only works with nodes running COS image. If you are not using GKE or a
 
 
 
-- Services and readinessProbes
-2. How services use labels
+#### Services and readinessProbes
+
+Readiness probes are not actually part of a service. Readiness probes are configured in the pod spec of each individual workload. The [Readiness Probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes) is used to determine where a pod is ready to serve traffic. This is different from a [liveness probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command) which acts more like a health check. Although these two probes serve different purposes, they are eached configured similarly.
+
+
 3. Services in the wild
