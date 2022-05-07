@@ -90,7 +90,7 @@ Note this only works with nodes running COS image. If you are not using GKE or a
 
 #### Services and readinessProbes
 
-Readiness probes are not actually part of a service. Readiness probes are configured in the pod spec of each individual workload. The [Readiness Probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes) is used to determine where a pod is ready to serve traffic. This is different from a [liveness probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command) which acts more like a health check. Although these two probes serve different purposes, they are eached configured similarly.
+Readiness probes are not actually part of a service. Readiness probes are configured in the pod spec of each individual workload. The [Readiness Probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes) is used to determine when a pod is ready to serve traffic. This is different from a [liveness probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command) which acts more like a health check. Although these two probes serve different purposes, they are eached configured similarly.
 
 
 3. Services in the wild
